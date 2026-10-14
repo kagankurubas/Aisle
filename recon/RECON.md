@@ -17,7 +17,7 @@ Observed live on 2026-10-14 UTC. This is a factual record, not a claim that all 
 - Account creation/sign-in, account settings, wishlists and order-history flows.
 - Cart quantities/removal, checkout address and payment screens, confirmation and returns. Do not place a real order just to investigate.
 
-The applicant has been asked to complete account/protected steps and provide redacted screenshots. Product implementation remains pending completion of reference review or an explicit scope decision from the applicant.
+The applicant subsequently provided Amazon Turkey screenshots showing account navigation, quantity 3 in the basket, removal confirmation, saved-for-later, a wishlist, empty order history and checkout address selection. These supplement the Amazon.com observations above. Payment-method and final-confirmation sections are collapsed in the evidence and were not observed. Actual purchase, returns and cancellation were not performed. The applicant authorized implementation after reviewing this scope. Original screenshots containing addresses and phone numbers are deliberately not copied into the repository; this anonymous written description is the retained evidence for those screens.
 
 ## Aisle decisions informed by observation
 

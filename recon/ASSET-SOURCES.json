@@ -1,0 +1,62 @@
+[
+  {
+    "id": 99,
+    "title": "Amazon Echo Plus",
+    "source": "https://cdn.dummyjson.com/product-images/mobile-accessories/amazon-echo-plus/thumbnail.webp"
+  },
+  {
+    "id": 100,
+    "title": "Apple Airpods",
+    "source": "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-airpods/thumbnail.webp"
+  },
+  {
+    "id": 101,
+    "title": "Apple AirPods Max Silver",
+    "source": "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-airpods-max-silver/thumbnail.webp"
+  },
+  {
+    "id": 103,
+    "title": "Apple HomePod Mini Cosmic Grey",
+    "source": "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-homepod-mini-cosmic-grey/thumbnail.webp"
+  },
+  {
+    "id": 104,
+    "title": "Apple iPhone Charger",
+    "source": "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-iphone-charger/thumbnail.webp"
+  },
+  {
+    "id": 105,
+    "title": "Apple MagSafe Battery Pack",
+    "source": "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-magsafe-battery-pack/thumbnail.webp"
+  },
+  {
+    "id": 107,
+    "title": "Beats Flex Wireless Earphones",
+    "source": "https://cdn.dummyjson.com/product-images/mobile-accessories/beats-flex-wireless-earphones/thumbnail.webp"
+  },
+  {
+    "id": 108,
+    "title": "iPhone 12 Silicone Case with MagSafe Plum",
+    "source": "https://cdn.dummyjson.com/product-images/mobile-accessories/iphone-12-silicone-case-with-magsafe-plum/thumbnail.webp"
+  },
+  {
+    "id": 78,
+    "title": "Apple MacBook Pro 14 Inch Space Grey",
+    "source": "https://cdn.dummyjson.com/product-images/laptops/apple-macbook-pro-14-inch-space-grey/thumbnail.webp"
+  },
+  {
+    "id": 79,
+    "title": "Asus Zenbook Pro Dual Screen Laptop",
+    "source": "https://cdn.dummyjson.com/product-images/laptops/asus-zenbook-pro-dual-screen-laptop/thumbnail.webp"
+  },
+  {
+    "id": 80,
+    "title": "Huawei Matebook X Pro",
+    "source": "https://cdn.dummyjson.com/product-images/laptops/huawei-matebook-x-pro/thumbnail.webp"
+  },
+  {
+    "id": 82,
+    "title": "New DELL XPS 13 9300 Laptop",
+    "source": "https://cdn.dummyjson.com/product-images/laptops/new-dell-xps-13-9300-laptop/thumbnail.webp"
+  }
+]
