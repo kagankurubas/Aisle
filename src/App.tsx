@@ -758,11 +758,11 @@ export default function App() {
         </aside>
       )}
       <div
-        className={`toast ${toast ? "visible" : ""}`}
+        className={`toast ${toast && !detail && !panel ? "visible" : ""}`}
         role="status"
         aria-live="polite"
       >
-        {toast && (
+        {toast && !detail && !panel && (
           <>
             <Check size={17} />
             {toast}
@@ -770,7 +770,7 @@ export default function App() {
         )}
       </div>
       {detail && (
-        <Modal title={detail.name} onClose={close} wide>
+        <Modal title={detail.name} onClose={close} notification={toast} wide>
           <div className="product-detail">
             <div className="detail-image">
               <img src={imageFor(detail)} alt={detail.name} />
@@ -854,6 +854,7 @@ export default function App() {
                         : "A thoughtful checkout."
           }
           onClose={close}
+          notification={toast}
           wide={["compare", "checkout"].includes(panel)}
         >
           <Suspense fallback={<p className="loading">Making a little room…</p>}>

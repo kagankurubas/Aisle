@@ -1,15 +1,17 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 export default function Modal({
   title,
   onClose,
   children,
   wide = false,
+  notification = "",
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
   wide?: boolean;
+  notification?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -36,6 +38,9 @@ export default function Modal({
         <div>
           <span className="eyebrow">AISLE / A LITTLE CLOSER</span>
           <h2 id="modal-title">{title}</h2>
+          <div className="modal-notification" role="status" aria-live="polite" aria-atomic="true">
+            {notification && <><Check size={15} /><span>{notification}</span></>}
+          </div>
         </div>
         <button
           className="icon-button"

@@ -1086,6 +1086,21 @@ footer p {
   z-index: 3;
   gap: 15px;
 }
+.modal-notification:not(:empty) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-radius: 5px;
+  background: var(--green);
+  color: white;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.modal-notification svg {
+  flex-shrink: 0;
+}
 .modal-head .eyebrow {
   font-size: 8px;
   color: #8d957f;
