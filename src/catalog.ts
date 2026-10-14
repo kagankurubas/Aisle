@@ -276,7 +276,7 @@ export const products: Product[] = [
   },
 ];
 export const productById = (id: number) => products.find((p) => p.id === id);
-export const imageFor = (p: Product) => `/products/${p.id}.webp`;
+export const imageFor = (p: Product) => `${import.meta.env.BASE_URL}products/${p.id}.webp`;
 export const money = (cents: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
     cents / 100,
