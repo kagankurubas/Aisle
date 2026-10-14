@@ -59,7 +59,7 @@ def capture():
                         elif part.get('type') in ('image', 'localImage'):
                             parts.append('[Image attachment: ' + json.dumps(part, ensure_ascii=False) + ']')
                     body = '\n'.join(parts)
-                elif item.get('phase') == 'final':
+                elif item.get('phase') in ('final', 'final_answer'):
                     kind, body = 'RESPONSE', item.get('text', '')
                 else:
                     continue

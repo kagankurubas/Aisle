@@ -25,3 +25,7 @@
 ## Canary evidence
 
 Pending. No synthetic prompts or responses have been inserted.
+
+## First canary discovery
+
+The real first canary prompt was automatically captured. Inspection revealed that Desktop labels final responses `final_answer`, whereas the exporter initially accepted only `final`. This was corrected before product development. Previously missed responses are appended with their original timestamps; existing log entries are not edited or removed. The initial export is therefore not fully chronological. The two-session test remains pending.
