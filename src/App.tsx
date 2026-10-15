@@ -1018,6 +1018,7 @@ export default function App() {
                   : "Add to comparison"}
               </button>
               <ListPicker
+                onNotice={notify}
                 key={`${user?.uid ?? "guest"}:${detail.id}`}
                 store={listStore}
                 product={detail}

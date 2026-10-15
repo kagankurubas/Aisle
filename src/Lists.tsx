@@ -6,13 +6,16 @@ export function ListPicker({
   store,
   product,
   onSignIn,
+  onNotice,
 }: {
   store: ListStore;
   product: Product;
   onSignIn: () => void;
+  onNotice: (message: string) => void;
 }) {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
+  const [selected, setSelected] = useState("");
   const busy = store.status !== "ready";
   return (
     <div className="list-picker">
@@ -25,29 +28,62 @@ export function ListPicker({
         </button>
       ) : (
         <>
-          <label>
-            Choose a list
-            <select
-              disabled={busy}
-              value=""
-              onChange={async (e) => {
-                const ok = await store.add(e.target.value, product.id);
-                if (ok) setMessage("Added to your list.");
-              }}
+          <form
+            className="list-add-form"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const target = store.lists.find((list) => list.id === selected);
+              if (!target || target.products.includes(product.id)) return;
+              setMessage("");
+              if (await store.add(target.id, product.id)) {
+                const notice = `${product.name} added to “${target.name}”.`;
+                setMessage(notice);
+                onNotice(notice);
+                setSelected("");
+              }
+            }}
+          >
+            <label>
+              Choose a list
+              <select
+                disabled={busy}
+                value={selected}
+                onChange={(e) => {
+                  setSelected(e.target.value);
+                  setMessage("");
+                }}
+              >
+                <option value="">Choose a list…</option>
+                {store.lists.map((list) => (
+                  <option
+                    key={list.id}
+                    value={list.id}
+                    disabled={list.products.includes(product.id)}
+                  >
+                    {list.name}
+                    {list.products.includes(product.id)
+                      ? " · already added"
+                      : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              className="primary"
+              type="submit"
+              disabled={
+                busy ||
+                !selected ||
+                !store.lists.some(
+                  (list) =>
+                    list.id === selected && !list.products.includes(product.id),
+                )
+              }
             >
-              <option value="">Choose a list…</option>
-              {store.lists.map((list) => (
-                <option
-                  key={list.id}
-                  value={list.id}
-                  disabled={list.products.includes(product.id)}
-                >
-                  {list.name}
-                  {list.products.includes(product.id) ? " · already added" : ""}
-                </option>
-              ))}
-            </select>
-          </label>
+              <ListPlus size={17} />
+              {store.status === "saving" ? "Adding…" : "Add to list"}
+            </button>
+          </form>
           <form
             className="list-create"
             onSubmit={async (e) => {
@@ -55,6 +91,7 @@ export function ListPicker({
               if (await store.create(name, product.id)) {
                 setName("");
                 setMessage("List created and product added.");
+                onNotice(`${product.name} added to your new list.`);
               }
             }}
           >
@@ -86,7 +123,7 @@ export function ListPicker({
           {store.error}
         </p>
       )}
-      <p role="status" className="small">
+      <p role="status" className={message ? "list-success-notice" : "small"}>
         {message}
       </p>
     </div>

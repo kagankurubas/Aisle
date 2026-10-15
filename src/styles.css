@@ -863,9 +863,12 @@ label input {
   display: flex;
   gap: 5px;
   align-items: center;
-  font-size: 9px;
-  color: #7f8a73;
-  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--green);
+  min-height: 44px;
+  padding: 10px 8px;
+  gap: 8px;
 }
 .compare-choice:hover,
 .compare-choice.chosen {
@@ -2313,11 +2316,12 @@ footer p {
     padding: 4px;
   }
   .compare-choice {
-    font-size: 9px;
-    padding: 7px 0;
+    font-size: 13px;
+    padding: 10px 4px;
   }
   .shelf-product {
-    height: 300px;
+    min-height: 320px;
+    height: auto;
   }
   .shelf {
     margin-bottom: 30px;
@@ -2634,3 +2638,10 @@ footer p {
 .list-delete-confirm { padding: 15px; background: #edf1e5; margin-bottom: 15px; }
 .list-delete-confirm .text-button { margin-left: 15px; }
 @media (max-width: 500px) { .list-create { align-items: stretch; flex-direction: column; } .list-product { gap: 8px; } }
+.list-add-form { display: flex; align-items: end; gap: 12px; margin: 18px 0 24px; }
+.list-add-form > label { flex: 1; min-width: 0; }
+.list-add-form > button { white-space: nowrap; min-height: 44px; }
+.list-success-notice { display: block; background: #e4eddb; color: var(--green); padding: 14px 16px; border-left: 3px solid var(--green); line-height: 1.6; font-weight: 500; }
+.compare-choice.chosen { background: #e9eddf; border-radius: 4px; }
+.compare-choice:hover { background: #eef0e6; border-radius: 4px; }
+@media (max-width: 500px) { .list-add-form { align-items: stretch; flex-direction: column; } }
