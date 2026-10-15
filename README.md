@@ -92,3 +92,8 @@ purchased quantities from the current bag, preserving later additions and unrela
 products. Separate TRY diagnostics never modify the bag. See docs/NEXT-STEPS.md for
 remaining deployment checks, checkout test-tool cleanup, AI integration and final QA.
 
+
+
+### Pip AI assistant
+
+Pip now has a server-side OpenAI Responses integration with catalog-grounded product recommendations, follow-up questions, explicit product actions, verified Firebase authentication and durable Redis usage limits. Production credentials and live acceptance tests are still pending. See [setup, privacy, limits and validation](docs/PIP-SETUP.md). Never place AI/Redis secrets in frontend variables.

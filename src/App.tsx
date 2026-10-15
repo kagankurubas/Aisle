@@ -50,6 +50,7 @@ const AccountPage = lazy(() => import("./AccountPage"));
 const Compare = lazy(() => import("./Compare"));
 const Checkout = lazy(() => import("./Checkout"));
 const DemoTools = lazy(() => import("./DemoTools"));
+const Pip = lazy(() => import("./Pip"));
 type Panel =
   | "bag"
   | "compare"
@@ -101,8 +102,6 @@ export default function App() {
   const [toast, setToast] = useState("");
   const [demo, setDemo] = useState(false);
   const [authError, setAuthError] = useState("");
-  const [guideQuery, setGuideQuery] = useState("");
-  const [guideResult, setGuideResult] = useState<Product[] | null>(null);
   const [lastOrder, setLastOrder] = useState<DemoOrder | null>(null);
   const catalogRef = useRef<HTMLElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -268,35 +267,6 @@ export default function App() {
       setAccountPage(true);
       window.location.hash = section;
     } else setPanel("account");
-  }
-  function findWithGuide(text: string) {
-    setGuideQuery(text);
-    const lower = text.toLowerCase();
-    const budget = lower.match(
-      /(?:under|below|less than|altında)\s*\$?\s*(\d+)/,
-    );
-    const limit = budget ? Number(budget[1]) * 100 : Infinity;
-    const kind = /headphone|kulaklık|earbud/.test(lower)
-      ? "Headphones"
-      : /laptop|bilgisayar/.test(lower)
-        ? "Laptops"
-        : /speaker|hoparlör/.test(lower)
-          ? "Speakers"
-          : null;
-    const words = lower.split(/\W+/).filter((w) => w.length > 2);
-    const candidates = products.filter(
-      (p) => p.price <= limit && (!kind || p.kind === kind),
-    );
-    const ranked = candidates
-      .map((p) => ({
-        p,
-        score: words.reduce(
-          (s, w) => s + (p.tags.join(" ").includes(w) ? 1 : 0),
-          0,
-        ),
-      }))
-      .sort((a, b) => b.score - a.score || a.p.price - b.p.price);
-    setGuideResult(ranked.slice(0, 3).map((r) => r.p));
   }
   function orderHistory() {
     return (
@@ -1321,119 +1291,19 @@ export default function App() {
             )}
             {panel === "orders" && orderHistory()}
             {panel === "guide" && (
-              <div className="guide-content">
-                <div className="guide-welcome">
-                  <span className="pip">
-                    <i />
-                    <i />
-                  </span>
-                  <p>
-                    A little help finding your kind of good.
-                    <small>Catalog guide · offline demo, not live AI</small>
-                  </p>
-                </div>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (guideQuery.trim()) findWithGuide(guideQuery);
-                  }}
-                >
-                  <label htmlFor="guide-query">What are you looking for?</label>
-                  <div className="guide-input">
-                    <input
-                      id="guide-query"
-                      value={guideQuery}
-                      maxLength={300}
-                      onChange={(e) => setGuideQuery(e.target.value)}
-                      placeholder="Headphones under $150 for my commute"
-                      required
-                    />
-                    <button
-                      className="primary"
-                      aria-label="Find matching products"
-                    >
-                      <ArrowRight size={18} />
-                    </button>
-                  </div>
-                </form>
-                <div className="guide-suggestions">
-                  {[
-                    "Headphones under $150",
-                    "A laptop for creative work",
-                    "A speaker for home",
-                  ].map((s) => (
-                    <button
-                      className="chip"
-                      key={s}
-                      onClick={() => findWithGuide(s)}
-                    >
-                      {s}
-                      <ArrowUpRight size={13} />
-                    </button>
-                  ))}
-                </div>
-                {guideResult && (
-                  <div className="guide-results">
-                    <h3>
-                      {guideResult.length
-                        ? "A few worth a closer look."
-                        : "Let’s try a little differently."}
-                    </h3>
-                    <p className="small muted">
-                      {guideResult.length
-                        ? "Matched against this sample catalog. Prices and features come directly from the product data."
-                        : "No catalog products match that type and budget. Try a higher budget or another product type."}
-                    </p>
-                    {guideResult.map((p) => (
-                      <div className="guide-result" key={p.id}>
-                        <button
-                          className="image-link"
-                          aria-label={`View ${p.name}`}
-                          onClick={() => {
-                            setPanel(null);
-                            setDetail(p);
-                          }}
-                        >
-                          <img src={imageFor(p)} alt={p.name} />
-                        </button>
-                        <div>
-                          <span className="eyebrow">{p.brand}</span>
-                          <h4>{p.name}</h4>
-                          <p>
-                            {p.specs.Battery
-                              ? `${p.specs.Battery} battery · ${p.specs.Style}`
-                              : p.kind}{" "}
-                            · {money(p.price)}
-                          </p>
-                          <button
-                            className="compare-choice"
-                            onClick={() => select(p)}
-                          >
-                            {selected.includes(p.id) ? (
-                              <Check size={14} />
-                            ) : (
-                              <Plus size={14} />
-                            )}{" "}
-                            {selected.includes(p.id) ? "Selected" : "Compare"}
-                          </button>
-                        </div>
-                        <button
-                          className="icon-button"
-                          aria-label={`Add ${p.name} to bag`}
-                          onClick={() => add(p)}
-                        >
-                          <ShoppingBag size={20} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <p className="small muted">
-                  This preview uses local catalog matching. Your request stays
-                  in your browser. Model-backed assistance is a separate
-                  integration.
-                </p>
-              </div>
+              <Pip
+                user={user}
+                onSignIn={() => {
+                  setPanel(null);
+                  openAccount();
+                }}
+                onView={(p) => {
+                  setPanel(null);
+                  setDetail(p);
+                }}
+                onAdd={add}
+                onCompare={select}
+              />
             )}
           </Suspense>
         </Modal>

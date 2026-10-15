@@ -71,3 +71,8 @@ request or real account was used in these UI checks. The prior 15 tests pass; pr
 build passes. New live sandbox payment and mobile visual checks remain after publication.
 Preview screenshot: outputs/aisle-checkout-clean.png in the chat output directory.
 
+
+
+## Pip AI integration
+
+22 automated tests and production build pass. New tests cover catalog parity, bounded/redacted context, strict configuration, durable quotas, output ID/budget validation, provider failures and route authentication/origins. Local guest browser view and sign-in handoff checked. Provider tests use injected fixtures: live OpenAI and Upstash validation remains pending user credentials. See PIP-SETUP.md.

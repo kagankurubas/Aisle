@@ -3,7 +3,7 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "functions": { "api/payment.js": { "maxDuration": 30 } },
+  "functions": { "api/payment.js": { "maxDuration": 30 }, "api/guide.js": { "maxDuration": 45 } },
   "headers": [{
     "source": "/(.*)",
     "headers": [

@@ -85,3 +85,12 @@ Kullanıcı GitHub Firebase web anahtarı uyarısını doğru açıklamayla Won'
 
 Normal USD checkout tek akışa indirildi; tanılama ve çevrimdışı siparişler footer Demo tools alanına taşındı. Test kartı yardımı katlanabilir, onay/durum/yeniden deneme dili net. Yerel görünüm ve çevrimdışı ret/yeniden deneme doğrulandı. Kod yayınlandıktan sonra normal USD ödeme ve demo araçları ayrımı canlıda kontrol edilecek; ardından gerçek AI Pip adımına geçilecek.
 
+
+
+## 15 Ekim — Pip entegrasyonu hazır, canlı bağlantı bekliyor
+
+- Gerçek OpenAI Responses bağlantısı, kataloğa bağlı öneriler, takip soruları ve açık ürün aksiyonları uygulandı.
+- Doğrulanmış hesap zorunluluğu, kalıcı Redis kullanım sayacı, sabit model ve token sınırı eklendi.
+- 22 otomatik test ve üretim derlemesi geçti; yerel misafir arayüzü kontrol edildi.
+- Canlı AI testi henüz yapılmadı: Vercel Production için dört değişken gerekiyor. Adımlar: `docs/PIP-SETUP.md`. Anahtarlar sohbetten paylaşılmayacak.
+- Sırada: anahtarların eklenmesi → yayın → canlı öneri/bütçe/karşılaştırma/kota testleri → hesap UX ve mobil iyileştirmeleri → son güvenlik taraması → kapsamlı bug taraması → video hazırlığı.
