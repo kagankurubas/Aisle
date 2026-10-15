@@ -1,5 +1,14 @@
 # Aisle — devam planı
 
+## 15 Ekim 2026 — güncel kontrol notu
+
+Hesap menüsü artık genel bakış ve ayrı bölümler halinde. Mobil kontrol ve düzeltmeler tamamlandı; ayrıntılar [MOBILE-QA.md](MOBILE-QA.md). Varsayılan tema açık. Son derleme ve 28 test geçti. Bu yerel değişiklikler henüz yayınlanmadı.
+
+Güvenlik ilk turu: bağımlılık taraması 0 açık; Git/kod/derleme taramasında bilinen Firebase web anahtarı dışında sunucu anahtarı/token örüntüsü bulunmadı. Ödeme ve AI uçları yetkisiz/yabancı kaynaklı istekleri reddetti. Tüm özel servis logları incelenmiş sayılmaz.
+
+Sıradaki adımlar: değişiklikleri yayınla → canlı demo giriş/kalıcılık, Pip ürün bağlamı ve ödeme dönüşünü kontrol et → gerçek telefonda klavye ve kaydırma testi → kalan geniş bug taramasını kapat → video hazırlığı. Aşağıdaki eski oturum notları geçmiş kayıtları da içerir; güncel durum için bu not esas alınmalı.
+
+
 ## Şimdi tamamlananlar
 
 - USD sepet ödemesi sunucudan doğrulandığında, ödeme oturumundaki satın alınan adetler sepetten düşer. Sonradan eklenen adetler ve farklı ürünler kalır. Aynı referans mevcut uygulama oturumunda iki kez uygulanmaz.

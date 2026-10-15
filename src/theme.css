@@ -151,3 +151,65 @@
     padding: 14px;
   }
 }
+
+/* Keep mobile controls readable and comfortable on narrow touch screens. */
+@media (max-width: 700px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select,
+  .header-search input:not([type]) {
+    font-size: 16px;
+  }
+  .icon-button,
+  .modal-head > .icon-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .price-line {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    grid-template-rows: 22px 22px;
+    gap: 0 6px;
+  }
+  .price-line strong { grid-column: 1; grid-row: 1; align-self: end; }
+  .price-line del { grid-column: 1; grid-row: 2; font-size: 10px; }
+  .price-line .add-button {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    width: 44px;
+    height: 44px;
+  }
+  .compare-choice { min-height: 44px; }
+  .quantity button {
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+  .bag-item { grid-template-columns: 60px minmax(0, 1fr); }
+  .bag-item-end {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+  .bag-item-end strong { margin: 0 auto 0 0; font-size: 14px; }
+  .bag-item-end .text-button { font-size: 12px; min-height: 44px; }
+  .bag-item small { font-size: 11px; }
+}
+@media (max-width: 500px) {
+  .header-actions { gap: 0; }
+  .header-actions > button { min-width: 44px; min-height: 44px; }
+  .header-actions .theme-toggle { min-width: 44px; min-height: 44px; }
+  .header-main > .wordmark { font-size: 43px; }
+  .header-actions .bag-button { gap: 3px; }
+}
+@media (max-width: 360px) {
+  .hero h1 { font-size: 42px; letter-spacing: -1.8px; }
+}
+@media (max-width: 360px) {
+  .pip-assistant .guide-welcome { flex-direction: column; gap: 14px; }
+  .pip-assistant > .demo-notice { flex-wrap: wrap; }
+  .pip-assistant > .demo-notice .secondary { white-space: nowrap; }
+}

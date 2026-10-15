@@ -70,6 +70,12 @@ def fetch(url, method='GET', headers=None, body=None):
         network.append({'url':url,'error':type(error).__name__})
         return 0, {}, b''
 
+local_assets=0
+for asset in (ROOT / 'dist').rglob('*'):
+    if asset.is_file() and asset.suffix in ['.js','.css','.html']:
+        scan(asset.read_bytes(),'local-build:'+asset.relative_to(ROOT).as_posix())
+        local_assets+=1
+
 asset_count = 0
 for home in ['https://kagankurubas.github.io/Aisle/', 'https://aisle-roan.vercel.app/']:
     status, headers, html = fetch(home)
@@ -112,6 +118,12 @@ probes = [
     ('POST', 'https://aisle-roan.vercel.app/api/payment?action=start', {'Origin':'https://untrusted.example','Content-Type':'application/json'}, b'{}'),
     ('POST', 'https://aisle-roan.vercel.app/api/payment?action=start', {'Origin':'https://kagankurubas.github.io','Content-Type':'application/json'}, b'{}'),
 ]
+probes += [
+    ('OPTIONS','https://aisle-roan.vercel.app/api/guide',{'Origin':'https://kagankurubas.github.io'},None),
+    ('POST','https://aisle-roan.vercel.app/api/guide',{'Origin':'https://untrusted.example','Content-Type':'application/json'},b'{"messages":[{"role":"user","content":"catalog"}]}'),
+    ('POST','https://aisle-roan.vercel.app/api/guide',{'Origin':'https://kagankurubas.github.io','Content-Type':'application/json'},b'{"messages":[{"role":"user","content":"catalog"}]}'),
+    ('POST','https://aisle-roan.vercel.app/api/guide',{'Origin':'https://kagankurubas.github.io','Content-Type':'application/json'},b'{'),
+]
 for method,url,headers,body in probes:
     status,response_headers,data=fetch(url,method,headers,body)
     # Only unauthenticated requests, never initializes provider sessions.
@@ -124,7 +136,7 @@ status,_,data=fetch('https://api.github.com/repos/kagankurubas/Aisle/actions/run
 workflow_runs=[]
 if status==200:
     workflow_runs=[{key:run.get(key) for key in ['id','head_sha','status','conclusion','html_url']} for run in json.loads(data).get('workflow_runs',[])]
-summary={'scope':{'reachable_commits':int(git('rev-list','--count','--all')),'unique_blobs':blob_count,'public_assets':asset_count,
+summary={'scope':{'reachable_commits':int(git('rev-list','--count','--all')),'unique_blobs':blob_count,'public_assets':asset_count,'local_build_assets':local_assets,
                   'local_head':git('rev-parse','HEAD').decode().strip(),'remote_main':git('rev-parse','origin/main').decode().strip()},
          'findings':findings,'network':network,'workflow_runs':workflow_runs}
 (OUT / 'summary.json').write_text(json.dumps(summary,indent=2),encoding='utf8')

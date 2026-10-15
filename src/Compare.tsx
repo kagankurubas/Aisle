@@ -25,7 +25,8 @@ export default function Compare({
           Only show differences
         </label>
       </div>
-      <div className="compare-scroll">
+      <p className="compare-scroll-hint">Swipe sideways to see every product →</p>
+      <div className="compare-scroll" tabIndex={0} role="region" aria-label="Scrollable product comparison">
         <table className="compare-table">
           <caption className="sr-only">
             Compare selected {items[0]?.kind.toLowerCase()}

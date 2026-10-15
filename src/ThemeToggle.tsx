@@ -6,9 +6,7 @@ function preferredTheme(): Theme {
     const saved = localStorage.getItem("aisle.theme");
     if (saved === "light" || saved === "dark") return saved;
   } catch {}
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  return "light";
 }
 export function applyInitialTheme() {
   document.documentElement.dataset.theme = preferredTheme();
