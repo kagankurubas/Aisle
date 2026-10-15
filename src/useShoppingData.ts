@@ -1,3 +1,4 @@
+import { canUseAccount } from "./accountAccess";
 import { useEffect, useRef, useState, type SetStateAction } from "react";
 import { getCloud, type SessionUser } from "./auth";
 import { normalizeCart, type CartLine, type DemoOrder } from "./shop";
@@ -50,7 +51,7 @@ export default function useShoppingData(
   authReady: boolean,
 ) {
   const owner = authReady ? (user?.uid ?? "demo") : null;
-  const verified = user?.emailVerified ?? false;
+  const verified = canUseAccount(user);
   const [state, setState] = useState<Data>(() => blank(null));
   const [syncStatus, setSyncStatus] = useState("loading");
   const [loadTick, setLoadTick] = useState(0);

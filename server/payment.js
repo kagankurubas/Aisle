@@ -75,9 +75,9 @@ export function verifyClaims(token, certs, project, now = Math.floor(Date.now()/
     const claims = JSON.parse(Buffer.from(parts[1],'base64url'));
     if (head.alg !== 'RS256' || !Object.hasOwn(certs,head.kid)) throw Error();
     if (!verify('RSA-SHA256',Buffer.from(parts[0]+'.'+parts[1]),certs[head.kid],Buffer.from(parts[2],'base64url'))) throw Error();
-    if (claims.aud !== project || claims.iss !== `https://securetoken.google.com/${project}` || typeof claims.sub !== 'string' || !claims.sub.length || claims.sub.length > 128 || !Number.isFinite(claims.exp) || claims.exp <= now || !Number.isFinite(claims.iat) || claims.iat > now || !Number.isFinite(claims.auth_time) || claims.auth_time > now || claims.email_verified !== true) throw Error();
+    if (claims.aud !== project || claims.iss !== `https://securetoken.google.com/${project}` || typeof claims.sub !== 'string' || !claims.sub.length || claims.sub.length > 128 || !Number.isFinite(claims.exp) || claims.exp <= now || !Number.isFinite(claims.iat) || claims.iat > now || !Number.isFinite(claims.auth_time) || claims.auth_time > now || (claims.email_verified !== true && claims.firebase?.sign_in_provider !== 'anonymous')) throw Error();
     return claims.sub;
-  } catch { reject('Sign in with a verified account to use sandbox payments.',401); }
+  } catch { reject('Sign in with a verified or demo account to use sandbox payments.',401); }
 }
 export async function authenticate(header) {
   const project = process.env.FIREBASE_PROJECT_ID || 'aisle-4f23e';

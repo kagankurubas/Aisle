@@ -86,3 +86,8 @@ User requires a free exam implementation. Replaced OpenAI with fixed Gemini 3.5 
 ## Pip history and modal gesture regression
 
 25 tests pass, including chat normalization, per-account storage isolation, deletion and blocked-storage behavior; build passes. Browser checked real store guest modal drag from inside to backdrop stays open and a normal backdrop click closes. An ignored local React fixture using actual Pip/Modal components verified two-history listing and opening an older chat restores question/answer and budget. No live auth/model requests were made by the fixture. User screenshots independently confirm live AI recommendations, follow-up and impossible-budget handling. Site-wide security and comprehensive bug sweep remain pending.
+
+
+## Anonymous demo, themes, test cards and product pages
+
+26 application tests and 8 Firestore emulator tests pass; production build passes. JWT tests now accept a correctly signed Firebase anonymous-provider identity and reject unverified password claims even with a client demo flag. Rules tests allow demo owner cart/list operations and deny cross-owner access, invalid quantities and fake paid orders. Browser checks cover prominent demo button (live activation pending), desktop/mobile 390px dark product pages, quick-view full-page link, refresh, light/dark persistence, review focus, unknown product page and test-card copy confirmation. Existing shelf lines removed. No live anonymous auth, payment or AI call was made by the assistant for this release. See DEMO-ACCOUNT.md for activation and remaining limits.

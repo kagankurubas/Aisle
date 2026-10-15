@@ -7,6 +7,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import SandboxPayment from "./SandboxPayment";
+import TestCards from "./TestCards";
 import { money, productById } from "./catalog";
 import { normalizeCart, totals, type CartLine, type DemoOrder } from "./shop";
 
@@ -19,7 +20,7 @@ export default function DemoTools({
   onComplete: (order: DemoOrder) => void;
   onOrders: () => void;
 }) {
-  const [tool, setTool] = useState<"provider" | "offline">("provider");
+  const [tool, setTool] = useState<"cards" | "provider" | "offline">("cards");
   const [decline, setDecline] = useState(false);
   const [error, setError] = useState("");
   const lines = normalizeCart(cart);
@@ -58,6 +59,16 @@ export default function DemoTools({
       </div>
       <div className="demo-tool-nav" aria-label="Choose a demo tool">
         <button
+          className={tool === "cards" ? "active" : ""}
+          aria-pressed={tool === "cards"}
+          onClick={() => setTool("cards")}
+        >
+          <ShieldCheck size={18} />
+          <span>
+            Test cards<small>Copy sandbox card details</small>
+          </span>
+        </button>
+        <button
           className={tool === "provider" ? "active" : ""}
           aria-pressed={tool === "provider"}
           onClick={() => setTool("provider")}
@@ -78,7 +89,9 @@ export default function DemoTools({
           </span>
         </button>
       </div>
-      {tool === "provider" ? (
+      {tool === "cards" ? (
+        <TestCards />
+      ) : tool === "provider" ? (
         <SandboxPayment
           mode="error-test"
           cart={[]}

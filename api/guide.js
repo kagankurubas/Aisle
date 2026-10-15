@@ -55,7 +55,7 @@ export function createGuideHandler({
         uid = await auth(req.headers.authorization);
       } catch {
         throw new GuideError(
-          "Sign in with a verified account to ask Pip.",
+          "Sign in with a verified or demo account to ask Pip.",
           401,
         );
       }

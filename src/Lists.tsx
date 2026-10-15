@@ -24,7 +24,7 @@ export function ListPicker({
       </h4>
       {store.status === "signed-out" ? (
         <button className="text-button" onClick={onSignIn}>
-          Sign in with a verified account <ArrowRight size={15} />
+          Use a verified or demo account <ArrowRight size={15} />
         </button>
       ) : (
         <>

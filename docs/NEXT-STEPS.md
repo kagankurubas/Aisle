@@ -113,3 +113,13 @@ Canlıda kullanıcı ekran görüntüleriyle doğrulandı: Türkçe 150 USD alt�
 - Eklendi: Pip Recent chats; hesaba göre bu tarayıcı sekmesinde en çok 10 sohbet, her birinde son 10 soru/yanıt. Aç/kapat ve yenilemede geri açılır; başka cihazla senkronizasyon yok. Sohbet açma/yeni sohbet/silme desteklenir. Eski sürümde kaydedilmeyen konuşmalar geri getirilemez.
 - Sıradaki Pip tasarım adımı: mağaza içinde ürünlere eşlik eden küçük Pip; öneriden ilgili rafa/ürüne gitme ve ürüne bağlı yardım. Sabit sohbet açma düğmesi, kapatılabilir rehberlik, mobilde erişilebilir alan ve azaltılmış hareket tercihi. Kullanıcı istemeden sepet değişikliği veya sürekli AI çağrısı olmayacak. Sohbet geçmişiyle aynı oturumu kullanacak.
 - Ardından hesap UX/mobil iyileştirmeleri, AI ve sohbet saklama dahil son güvenlik incelemesi, kapsamlı bug taraması ve video hazırlığı.
+
+
+## Yeni sürüm: deneme oturumu ve ürün deneyimi
+
+- Deneme hesabı kodu hazır: Firebase Anonymous ile her tarayıcı oturumuna özel kimlik, ayrı sepet/favori/liste, Pip ve sandbox ödeme erişimi. Canlı etkinleştirme: Anonymous sağlayıcısını aç → güncel firestore.rules yayımla → kodu yayımla → yeni tarayıcıda giriş/veri ayrımı testi. Adımlar DEMO-ACCOUNT.md içinde. Ortak şifre kullanılmıyor; çıkış sonrası demo hesabını kurtarma garantisi yok.
+- Test kartları ödeme ekranında sürekli görünür ve kopyalanabilir; footer Test cards & demo tools alanında toplu görünür.
+- Raf çizgileri desktop ve mobilde kaldırıldı. Kalıcı açık/koyu tema seçimi eklendi.
+- Ürünlerin bağımsız #product/ID sayfaları ve /reviews bölümü hazır. Popup varsayılan hızlı bakış olarak kaldı; tam sayfa bağlantısı eklendi. Yorumlar açıkça temsili; gerçek kullanıcı yorum veritabanı henüz yok.
+- 26 uygulama, 8 Firestore emülatör testi ve derleme geçti; desktop/mobil görünüm, tema kalıcılığı, sayfa yenileme/yorum bağlantısı ve kart kopyalama tarayıcıda kontrol edildi. Canlı Anonymous giriş testi henüz bekliyor.
+- Sonraki sıra: bu sürümün canlı testi → Pip’in mağaza/ürün içinde eşlik etmesi → hesap UX ve son mobil rötuşlar → güncel güvenlik taraması → geniş bug taraması/düzeltme → final yayın ve video.

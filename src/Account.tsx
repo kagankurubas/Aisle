@@ -17,6 +17,7 @@ import {
   sessionUser,
   type SessionUser,
 } from "./auth";
+import { canUseAccount } from "./accountAccess";
 export default function Account({
   user,
   onUser,
@@ -63,6 +64,12 @@ export default function Account({
       const provider = new authSDK.GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
       await authSDK.signInWithPopup(auth, provider);
+    });
+  }
+  async function demoAccount() {
+    await perform(async () => {
+      const { auth, authSDK } = await getFirebase();
+      await authSDK.signInAnonymously(auth);
     });
   }
   async function submit(e: FormEvent) {
@@ -117,11 +124,12 @@ export default function Account({
         <>
           <p className="account-email">
             <Mail size={17} />
-            {user.email}
+            {user.isAnonymous ? "Your private demo session" : user.email}
           </p>
-          {user.emailVerified ? (
+          {canUseAccount(user) ? (
             <p className="stock">
-              <Check size={17} /> Email verified ·{" "}
+              <Check size={17} />{" "}
+              {user.isAnonymous ? "Demo account" : "Email verified"} ·{" "}
               {syncStatus === "saved"
                 ? "Bag and favorites saved to your account"
                 : syncStatus === "saving"
@@ -186,8 +194,9 @@ export default function Account({
             </div>
           )}
           <p className="small muted">
-            Email and password are managed by Firebase Authentication. Demo
-            orders are separate from verified payments.
+            {user.isAnonymous
+              ? "This demo session has its own bag, favorites, lists and Pip access. It stays available when you refresh this tab. Signing out or ending the browser session can lose access; it cannot be recovered with an email. Other devices start separate demo sessions. All payments are sandbox tests."
+              : "Email and password are managed by Firebase Authentication. Demo orders are separate from verified payments."}
           </p>
           <button
             className="secondary"
@@ -202,7 +211,11 @@ export default function Account({
             }
           >
             <LogOut size={17} />{" "}
-            {syncStatus === "saving" ? "Saving before sign out…" : "Sign out"}
+            {syncStatus === "saving"
+              ? "Saving before sign out…"
+              : user.isAnonymous
+                ? "End demo session"
+                : "Sign out"}
           </button>
         </>
       ) : (
@@ -215,6 +228,21 @@ export default function Account({
             <span className="google-g">G</span>Continue with Google
             <ArrowUpRight size={16} />
           </button>
+          <div className="demo-account-entry">
+            <button
+              className="secondary full"
+              onClick={demoAccount}
+              disabled={busy || !authAvailable}
+            >
+              <UserRound size={17} />{" "}
+              {busy ? "One moment…" : "Try a demo account"}{" "}
+              <ArrowRight size={16} />
+            </button>
+            <p className="small muted centered">
+              No email or password needed. Your own demo session with lists, Pip
+              and sandbox checkout.
+            </p>
+          </div>
           {!authAvailable && (
             <p className="integration-note">
               {authConfigured
@@ -303,12 +331,9 @@ export default function Account({
           <div className="or-divider">
             <span>just exploring?</span>
           </div>
-          <button className="secondary full" onClick={onDemo} disabled={busy}>
-            <UserRound size={17} /> Try the demo <ArrowRight size={16} />
+          <button className="text-button" onClick={onDemo} disabled={busy}>
+            Browse without signing in
           </button>
-          <p className="small muted centered">
-            No account. No personal details. Just a little exploring.
-          </p>
         </>
       )}
       {error && (

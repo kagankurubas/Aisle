@@ -24,7 +24,7 @@
   overflow-wrap: anywhere;
 }
 .account-page-intro h1 em {
-  color: #73805d;
+  color: var(--text-secondary, #73805d);
   font-weight: 400;
 }
 .account-page-intro > p {
@@ -139,7 +139,7 @@
   border-top: 1px solid var(--line);
 }
 .account-saved-image {
-  background: #eef0e6;
+  background: var(--surface-soft, #eef0e6);
   padding: 8px;
   border-radius: 3px;
 }
@@ -294,8 +294,8 @@
     font-size: 22px;
   }
 }
-#account-lists { background: #eef1e6; padding: 30px; border-top: 3px solid var(--green); }
-#account-lists .account-section-heading { border-bottom-color: #c5ceba; }
+#account-lists { background: var(--surface-soft, #eef1e6); padding: 30px; border-top: 3px solid var(--green); }
+#account-lists .account-section-heading { border-bottom-color: var(--text-secondary, #c5ceba); }
 #account-lists .shopping-list { border-top: 2px solid #c5ceba; padding-top: 24px; margin-top: 30px; }
 #account-lists .list-create input { background: var(--paper); }
 @media (max-width: 700px) { #account-lists { padding: 22px 16px; } }
@@ -305,16 +305,16 @@
   border: 0;
   border-top: 3px solid #aebaa1;
 }
-#account-saved { background: #f0f0e7; }
-#account-orders { background: #f4eee3; }
-#account-details { background: #edf0ec; }
-.account-page-sections > #account-lists { background: #e7edde; border-top-color: var(--green); }
+#account-saved { background: var(--surface-soft, #f0f0e7); }
+#account-orders { background: var(--surface-soft, #f4eee3); }
+#account-details { background: var(--surface-soft, #edf0ec); }
+.account-page-sections > #account-lists { background: var(--surface-soft, #e7edde); border-top-color: var(--green); }
 .account-page-sections .account-section-heading {
   padding-bottom: 25px;
   margin-bottom: 26px;
   border-bottom: 1px solid #c8cebd;
 }
-.account-page-sections .account-section-heading .eyebrow { color: #536547; font-weight: 600; }
+.account-page-sections .account-section-heading .eyebrow { color: var(--text-secondary, #536547); font-weight: 600; }
 .account-page-sections .account-page-section:last-child { margin-bottom: 0; }
 @media (max-width: 700px) {
   .account-page-sections > .account-page-section { padding: 26px 18px 30px; margin-bottom: 34px; }

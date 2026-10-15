@@ -44,6 +44,21 @@ const verified = (uid) =>
       email_verified: true,
     })
     .firestore();
+test('Firebase anonymous demo accounts may access only their own validated shopping and lists', async () => {
+  const demo = env.authenticatedContext('demo-a',{firebase:{sign_in_provider:'anonymous'}}).firestore();
+  const other = env.authenticatedContext('demo-b',{firebase:{sign_in_provider:'anonymous'}}).firestore();
+  await assertSucceeds(setDoc(state(demo,'demo-a'),payload()));
+  await assertSucceeds(getDoc(state(demo,'demo-a')));
+  await assertFails(getDoc(state(other,'demo-a')));
+  await assertFails(setDoc(state(demo,'alice'),payload()));
+  await assertFails(setDoc(state(demo,'demo-a'),{...payload(),cart:{100:999}}));
+  const list=doc(demo,'users','demo-a','lists','ideas');
+  await assertSucceeds(setDoc(list,{name:'Demo ideas',products:[100],updatedAt:serverTimestamp()}));
+  await assertSucceeds(getDocs(collection(demo,'users','demo-a','lists')));
+  await assertFails(getDoc(doc(other,'users','demo-a','lists','ideas')));
+  await assertFails(getDocs(collection(other,'users','demo-a','lists')));
+  await assertFails(setDoc(doc(demo,'users','demo-a','orders','fake'),{paid:true}));
+});
 test("verified owner may write and read own shopping state", async () => {
   const db = verified("alice");
   await assertSucceeds(setDoc(state(db, "alice"), payload()));
@@ -55,7 +70,7 @@ test("a second account cannot read or write the first account even with a guesse
   await assertFails(getDoc(state(bob, "alice")));
   await assertFails(setDoc(state(bob, "alice"), payload()));
 });
-test("anonymous and unverified users cannot access shopping state", async () => {
+test("unauthenticated guests and unverified email users cannot access shopping state", async () => {
   const anon = env.unauthenticatedContext().firestore();
   const unverified = env
     .authenticatedContext("alice", { email_verified: false })

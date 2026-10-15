@@ -62,3 +62,8 @@ References: [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing), [Fr
 ## User-confirmed live checks
 
 Turkish recommendations under 150 USD, grounded 12/5-hour battery comparison/selection, and no laptop recommendation under 10 USD passed via user screenshots. Remaining live acceptance checks are still pending. New history UI uses tab sessionStorage; local fixture browser tests verified listing and reopening another chat with its budget, plus automated account-isolation/corruption/size/storage-failure checks. Modal inside-to-outside drag remains open, ordinary outside click closes. 25 tests and build pass. No model call was made for this UI verification.
+
+
+## Demo access update
+
+Verified email/Google accounts and Firebase-signed anonymous demo accounts can use Pip; other unverified accounts remain blocked. Anonymous accounts have the same 20/day account quota and share the 200/day global quota. Enable Anonymous in Firebase and deploy the updated rules/code before live testing. No shared credentials, new AI key or paid service is required. Chat history is still scoped to that UID and browser tab. See DEMO-ACCOUNT.md.

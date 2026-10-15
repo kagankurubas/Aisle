@@ -43,6 +43,8 @@ test('Firebase JWT verification rejects forged signatures, wrong project, expiry
   const claims={sub:'alice',aud:'aisle-4f23e',iss:'https://securetoken.google.com/aisle-4f23e',iat:100,auth_time:100,exp:200,email_verified:true};
   function jwt(c:object){const base=[{alg:'RS256',kid:'fixture'},c].map(p=>Buffer.from(JSON.stringify(p)).toString('base64url')).join('.');return base+'.'+sign('RSA-SHA256',Buffer.from(base),privateKey).toString('base64url');}
   assert.equal(verifyClaims(jwt(claims),certs,'aisle-4f23e',150),'alice');
+  assert.equal(verifyClaims(jwt({...claims,email_verified:false,firebase:{sign_in_provider:'anonymous'}}),certs,'aisle-4f23e',150),'alice');
+  assert.throws(()=>verifyClaims(jwt({...claims,email_verified:false,firebase:{sign_in_provider:'password'},isAnonymous:true}),certs,'aisle-4f23e',150));
   for(const changed of [{...claims,email_verified:false},{...claims,aud:'other'},{...claims,exp:150},{...claims,iat:200}]) assert.throws(()=>verifyClaims(jwt(changed),certs,'aisle-4f23e',150));
   const valid=jwt(claims);assert.throws(()=>verifyClaims(valid.slice(0,-10)+'AAAAAAAAAA',certs,'aisle-4f23e',150));
 });
@@ -86,7 +88,7 @@ test('TRY error diagnostic is a fixed separate amount and cannot confirm a USD b
   assert.throws(()=>verifiedResult(signed,{...session,currency:'USD'},secret));
   await assert.rejects(startPayment('alice',[],false,config,fakeFetch,'live'));
 });
-test('API rejects malformed JSON and anonymous requests before consulting payment credentials',async()=>{
+test('API rejects malformed JSON and unauthenticated requests before consulting payment credentials',async()=>{
   function response(){return {code:0,body:null as any,setHeader(){},status(code:number){this.code=code;return this;},json(body:any){this.body=body;return this;},end(){return this;}};}
   const headers={origin:'https://kagankurubas.github.io','content-type':'application/json'};
   for(const [body,expected] of [['{broken',400],['[]',400],['null',400],['{}',401]] as const){

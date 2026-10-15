@@ -1,8 +1,9 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Firebase-signed anonymous demo accounts have isolated UIDs; never share a demo password.
     function verifiedOwner(uid) {
-      return request.auth != null && request.auth.uid == uid && request.auth.token.email_verified == true;
+      return request.auth != null && request.auth.uid == uid && (request.auth.token.get('email_verified', false) == true || request.auth.token.get('firebase', {}).get('sign_in_provider', '') == 'anonymous');
     }
     function quantity(cart, id, stock) {
       return !(id in cart) || (cart[id] is int && cart[id] >= 1 && cart[id] <= stock);

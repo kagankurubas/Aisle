@@ -4,6 +4,7 @@ export type SessionUser = {
   email: string | null;
   emailVerified: boolean;
   displayName: string | null;
+  isAnonymous?: boolean;
 };
 const env = import.meta.env;
 export const authConfigured = Boolean(
@@ -50,7 +51,15 @@ export async function getCloud() {
 }
 export function sessionUser(user: User | null): SessionUser | null {
   return user
-    ? { uid: user.uid, email: user.email, emailVerified: user.emailVerified, displayName: user.displayName?.trim() || null }
+    ? {
+        uid: user.uid,
+        email: user.email,
+        emailVerified: user.emailVerified,
+        isAnonymous: user.isAnonymous,
+        displayName:
+          user.displayName?.trim() ||
+          (user.isAnonymous ? "Demo shopper" : null),
+      }
     : null;
 }
 export async function subscribeAuth(
@@ -75,6 +84,11 @@ export function authMessage(error: unknown) {
     code === "auth/cancelled-popup-request"
   )
     return "Sign-in was closed. You can try again whenever you’re ready.";
+  if (
+    code === "auth/operation-not-allowed" ||
+    code === "auth/admin-restricted-operation"
+  )
+    return "This sign-in method is not enabled yet. Try Google or email sign-in, or browse without signing in.";
   if (code === "auth/popup-blocked")
     return "Allow the sign-in popup in your browser, then try again.";
   if (code === "auth/unauthorized-domain")

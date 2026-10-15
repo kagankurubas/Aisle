@@ -1,9 +1,10 @@
+import { canUseAccount } from "./accountAccess";
 import { useEffect, useRef, useState } from "react";
 import { getCloud, type SessionUser } from "./auth";
 import { productById } from "./catalog";
 export type ShoppingList = { id: string; name: string; products: number[] };
 export default function useLists(user: SessionUser | null) {
-  const owner = user?.emailVerified ? user.uid : null;
+  const owner = canUseAccount(user) ? user!.uid : null;
   const [data, setData] = useState<{
     owner: string | null;
     lists: ShoppingList[];

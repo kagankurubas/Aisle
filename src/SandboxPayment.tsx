@@ -1,3 +1,5 @@
+import TestCards from "./TestCards";
+import { canUseAccount } from "./accountAccess";
 import { useEffect, useRef, useState } from "react";
 import { ExternalLink, ShieldCheck } from "lucide-react";
 import { getFirebase, subscribeAuth } from "./auth";
@@ -64,9 +66,9 @@ export default function SandboxPayment({
   async function call(action: string, body: object, expectedUid?: string) {
     const { auth } = await getFirebase();
     const user = auth.currentUser;
-    if (!user?.emailVerified || (expectedUid && user.uid !== expectedUid))
+    if (!canUseAccount(user) || (expectedUid && user!.uid !== expectedUid))
       throw new Error(
-        "Sign in with the same verified account to use this payment session.",
+        "Sign in with the same verified or demo account to use this payment session.",
       );
     const token = await user.getIdToken();
     const response = await fetch(`${endpoint}?action=${action}`, {
@@ -198,6 +200,7 @@ export default function SandboxPayment({
           ? "A fixed TRY 1.00 sandbox diagnostic. It does not pay for or change your USD bag."
           : "Complete your test payment in iyzico’s secure tab, then return here to confirm. No real money will be charged."}
       </p>
+      <TestCards mode={diagnostic ? "diagnostic" : "bag"} />
       {!session ? (
         <>
           <button
@@ -213,20 +216,6 @@ export default function SandboxPayment({
                 : "Continue to secure payment"}
             <ExternalLink size={17} />
           </button>
-          <details className="payment-help">
-            <summary>
-              {diagnostic
-                ? "Cards for this diagnostic"
-                : "Test card for this demo"}
-            </summary>
-            <p>
-              {diagnostic
-                ? "Insufficient funds: 4111 1111 1111 1129. Retry successfully: 5528 7900 0000 0008."
-                : "USD test card: 5400 0100 0000 0004."}
-              <br />
-              Name: Demo Shopper · Expiry: 12/30 · CVC: 123. Test cards only.
-            </p>
-          </details>
         </>
       ) : (
         <>

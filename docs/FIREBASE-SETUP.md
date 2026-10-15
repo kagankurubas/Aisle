@@ -28,3 +28,8 @@ The workflow tests and builds the store for `/aisle/`. The publishing script rea
 ## Current boundaries
 
 The downloaded standalone demo intentionally remains offline with sign-in disabled. It is for UI exploration. Authentication must be tested on an authorized HTTP(S) domain. Actual Firestore rules publication and email/Google flows are not confirmed by compilation alone.
+
+
+## Optional exam demo sign-in (current implementation)
+
+Enable Firebase Anonymous provider and publish this version's complete Firestore rules before trying the new Try a demo account button. Signed anonymous users have private UID-scoped shopping/lists and server access to Pip and sandbox payments; unverified email users remain blocked. Anonymous identities are not shared passwords and may be unrecoverable after sign-out. See DEMO-ACCOUNT.md.

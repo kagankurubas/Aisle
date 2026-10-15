@@ -1,3 +1,4 @@
+import { canUseAccount } from "./accountAccess";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, ShoppingBag, Scale } from "lucide-react";
 import { getFirebase, type SessionUser } from "./auth";
@@ -55,7 +56,7 @@ export default function Pip({
       latest.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [turns.length]);
   async function ask(text: string) {
-    if (pending.current || !text.trim() || !user?.emailVerified) return;
+    if (pending.current || !text.trim() || !canUseAccount(user)) return;
     const controller = new AbortController();
     pending.current = controller;
     setBusy(true);
@@ -64,7 +65,7 @@ export default function Pip({
     try {
       const { auth } = await getFirebase();
       const owner = auth.currentUser;
-      if (!owner || owner.uid !== user.uid)
+      if (!owner || owner.uid !== user!.uid)
         throw new Error("Please sign in again.");
       const token = await owner.getIdToken();
       if (controller.signal.aborted) return;
@@ -142,7 +143,7 @@ export default function Pip({
       }
     }
   }
-  const ready = Boolean(user?.emailVerified);
+  const ready = canUseAccount(user);
   return (
     <div className="guide-content pip-assistant">
       <div className="guide-welcome">
@@ -393,6 +394,10 @@ export default function Pip({
           Start fresh
         </button>
       )}
+      <p className="small muted">
+        Demo allowance: up to 20 questions per account per UTC day. Shared site
+        and free-provider limits also apply.
+      </p>
       <p className="small muted">
         Your question and up to two previous exchanges are sent to Google
         Gemini’s free service. Google may use this content to improve its

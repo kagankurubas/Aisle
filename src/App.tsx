@@ -41,10 +41,14 @@ import {
   type DemoOrder,
 } from "./shop";
 import Modal from "./Modal";
+import ThemeToggle from "./ThemeToggle";
+import { productRoute as readProductRoute } from "./productRoute";
 import { authAvailable, subscribeAuth, type SessionUser } from "./auth";
+import { canUseAccount } from "./accountAccess";
 import useShoppingData from "./useShoppingData";
 import useLists from "./useLists";
 import { ListPicker } from "./Lists";
+const ProductPage = lazy(() => import("./ProductPage"));
 const Account = lazy(() => import("./Account"));
 const AccountPage = lazy(() => import("./AccountPage"));
 const Compare = lazy(() => import("./Compare"));
@@ -75,6 +79,9 @@ export default function App() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [accountPage, setAccountPage] = useState(
     window.location.hash.startsWith("#account"),
+  );
+  const [productRoute, setProductRoute] = useState(() =>
+    readProductRoute(window.location.hash),
   );
   const [authReady, setAuthReady] = useState(!authAvailable);
   const {
@@ -109,6 +116,7 @@ export default function App() {
   useEffect(() => {
     const route = () => {
       setAccountPage(window.location.hash.startsWith("#account"));
+      setProductRoute(readProductRoute(window.location.hash));
       setPanel(null);
       setDetail(null);
     };
@@ -119,6 +127,7 @@ export default function App() {
     if (user && panel === "account") {
       close();
       setAccountPage(false);
+      setProductRoute(null);
       setCategory("All");
       setQuery("");
       setSavedOnly(false);
@@ -143,6 +152,7 @@ export default function App() {
     subscribeAuth((next) => {
       if (!cancelled) {
         setUser(next);
+        if (next) setDemo(false);
         setAuthReady(true);
       }
     })
@@ -195,7 +205,7 @@ export default function App() {
   function add(p: Product) {
     if (!shoppingReady) {
       notify(
-        user && !user.emailVerified
+        user && !canUseAccount(user)
           ? "Verify your email before saving your finds."
           : "Your account is not ready. Check the account notice and retry.",
       );
@@ -212,7 +222,7 @@ export default function App() {
   function save(p: Product) {
     if (!shoppingReady) {
       notify(
-        user && !user.emailVerified
+        user && !canUseAccount(user)
           ? "Verify your email before saving your finds."
           : "Your account is not ready. Check the account notice and retry.",
       );
@@ -256,7 +266,11 @@ export default function App() {
     setDetail(null);
   }
   function leaveAccount() {
-    if (window.location.hash.startsWith("#account")) {
+    if (
+      window.location.hash.startsWith("#account") ||
+      window.location.hash.startsWith("#product/")
+    ) {
+      setProductRoute(null);
       setAccountPage(false);
       window.location.hash = "catalog";
     }
@@ -438,7 +452,9 @@ export default function App() {
             onClick={() => {
               close();
               browse();
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              requestAnimationFrame(() =>
+                window.scrollTo({ top: 0, behavior: "smooth" }),
+              );
             }}
             aria-label="Aisle home"
           >
@@ -473,13 +489,14 @@ export default function App() {
             )}
           </div>
           <div className="header-actions">
+            <ThemeToggle />
             <button
               className="account-button"
               aria-label={
                 signedIn
                   ? `My account${user?.displayName ? `: ${user.displayName}` : ""}`
                   : demo
-                    ? "Demo account"
+                    ? "Guest browsing"
                     : "Sign in"
               }
               title={user?.displayName || undefined}
@@ -490,7 +507,7 @@ export default function App() {
                 {signedIn
                   ? user?.displayName || "My account"
                   : demo
-                    ? "Demo shopper"
+                    ? "Guest mode"
                     : "Sign in"}
               </span>
             </button>
@@ -572,7 +589,32 @@ export default function App() {
         </div>
       )}
       <main>
-        {accountPage && user ? (
+        {productRoute ? (
+          <Suspense
+            fallback={
+              <div className="loading" role="status">
+                Opening your find…
+              </div>
+            }
+          >
+            <ProductPage
+              product={
+                productRoute.id === null
+                  ? undefined
+                  : productById(productRoute.id)
+              }
+              onBrowse={() => browse()}
+              onAdd={add}
+              onSave={save}
+              onCompare={select}
+              saved={favorites.includes(productRoute.id ?? -1)}
+              selected={selected.includes(productRoute.id ?? -1)}
+              listStore={listStore}
+              onSignIn={() => openAccount("account-lists")}
+              onNotice={notify}
+            />
+          </Suspense>
+        ) : accountPage && user ? (
           <Suspense
             fallback={
               <div className="empty" role="status">
@@ -902,7 +944,9 @@ export default function App() {
             About this demo
           </button>
           <span>© {new Date().getFullYear()} Aisle</span>
-          <button onClick={() => setPanel("demo-tools")}>Demo tools</button>
+          <button onClick={() => setPanel("demo-tools")}>
+            Test cards & demo tools
+          </button>
         </div>
       </footer>
       {selected.length > 0 && !panel && !detail && (
@@ -972,6 +1016,9 @@ export default function App() {
               </span>
               <h3>{detail.description.split(".")[0]}.</h3>
               <Stars p={detail} />
+              <a className="full-product-link" href={`#product/${detail.id}`}>
+                View full product page & reviews <ArrowUpRight size={16} />
+              </a>
               <p>{detail.description}</p>
               <div className="detail-price">
                 <strong>{money(detail.price)}</strong>
@@ -1274,7 +1321,7 @@ export default function App() {
                   setDemo(true);
                   close();
                   notify(
-                    "Welcome, demo shopper. No personal information needed.",
+                    "Browsing locally. Use a demo account to try Pip, lists and sandbox payments.",
                   );
                 }}
                 onOrders={() =>
