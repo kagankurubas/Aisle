@@ -24,11 +24,16 @@ export default async function handler(req,res) {
   try {
     if (!['start','status'].includes(action)) throw new PaymentError('Unknown payment action.',404);
     if (!String(req.headers['content-type']).startsWith('application/json')) throw new PaymentError('Use JSON.',415);
-    const raw = typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {});
-    if (Buffer.byteLength(raw) > 16000) throw new PaymentError('Request too large.',413);
     let body;
-    try { body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body; }
+    let raw;
+    // Vercel exposes body through a lazy JSON getter, which can itself throw.
+    try {
+      const incoming = req.body;
+      raw = typeof incoming === 'string' ? incoming : JSON.stringify(incoming ?? null);
+      body = typeof incoming === 'string' ? JSON.parse(incoming) : incoming;
+    }
     catch { throw new PaymentError('Invalid JSON.',400); }
+    if (Buffer.byteLength(raw) > 16000) throw new PaymentError('Request too large.',413);
     if (!body || typeof body !== 'object' || Array.isArray(body)) throw new PaymentError('Use a JSON object.',400);
     const uid = await authenticate(req.headers.authorization);
     const config = configuration();

@@ -93,6 +93,9 @@ test('API rejects malformed JSON and anonymous requests before consulting paymen
     const res=response();await handler({url:'/api/payment?action=start',method:'POST',headers,body},res);assert.equal(res.code,expected);
   }
   const res=response();await handler({url:'/api/payment?action=start',method:'POST',headers,body:JSON.stringify({ticket:'x'.repeat(16000)})},res);assert.equal(res.code,413);
+  const lazy=response();
+  await handler({url:'/api/payment?action=start',method:'POST',headers,get body(){throw new SyntaxError('Invalid platform JSON');}},lazy);
+  assert.equal(lazy.code,400);
 });
 test('paid quantities are removed without clearing later additions or unrelated products',()=>{
   assert.deepEqual(subtractPurchased([{id:100,quantity:2}],[{id:100,quantity:2}]),[]);

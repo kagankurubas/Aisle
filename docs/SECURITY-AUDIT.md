@@ -63,3 +63,10 @@ Bu sonuç Vercel ortam değişkenlerinin veya geçmiş Actions loglarının gör
 - https://github.com/grpc/grpc-node/security/advisories/GHSA-f596-whhp-79r4
 
 Tekrar tarama: `python scripts/security-audit.py`. Ham kamuya açık paketler ve JSON kanıtları yalnızca ignore edilen `.capture-state/security-audit/` içinde saklanır. Rapor ve paylaşılan sonuçlar gizli değer içermez.
+
+## Yayın sonrası doğrulama
+
+GitHub run 38704130933, commit 39d31e9 başarılı. Vercel güvenlik başlıkları canlıda görüldü. İzinli origin ile oturumsuz API isteği 401; izinsiz origin 403. Kullanıcı üç ödeme değişkeninin Production scope'ta bulunduğunu ve website listesinin yalnızca Firebase auth domaini, aisle-roan.vercel.app ve kagankurubas.github.io olduğunu ekran görüntüleriyle doğruladı. Son beş Actions işinin örüntü taramasında sunucu sırrı/token bulunmadı; üç logda public Firebase web anahtarı vardı. Secret scanning API metaverisi erişimi reddedildi; uyarı sayısı/çözümü API'den doğrulanamadı. Vercel özel Functions logları ve Shared/Preview değişken kapsamı henüz incelenmedi.
+
+Canlı bozuk JSON denemesi 502 döndü: Vercel'in tembel req.body okuyucusunun kendisi SyntaxError atabiliyor. Bu getter erişimi de JSON yakalama bloğuna taşındı; özel regresyon denemesi dahil 15 test geçti. Ek düzeltme yeniden yayınlanıp 400 yanıtı doğrulanmalı. Yeni başlıklar sonrasında kullanıcı Google girişini ayrıca deneyecek.
+
