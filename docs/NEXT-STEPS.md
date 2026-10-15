@@ -6,27 +6,30 @@
 - Ayrı 1 TL hata testi, başarısız ve bekleyen ödeme sepeti değiştirmez.
 - Favorilerden ayrı isimli alışveriş listeleri: oluşturma, yeniden adlandırma, silme, ürün ekleme/çıkarma ve listeden sepete ekleme.
 - Listeler doğrulanmış kullanıcıya ait Firestore yolunda tutulur; başka kullanıcıların erişimi engellenir.
-- 14 uygulama testi, 7 Firestore emülatör testi ve üretim derlemesi geçti. Bu sürümün canlı tarayıcı testi henüz yapılmadı.
+- 14 uygulama testi, 7 Firestore emülatör testi ve üretim derlemesi geçti. Güncel kurallar ve kod yayınlandı. Kullanıcı canlıda listeye düğmeyle eklemeyi, başarı bildirimini, liste kalıcılığını ve USD ödeme sonrası sepetten düşmeyi doğruladı; ürünler yenilemede geri gelmedi.
 
-## Bir sonraki oturumda ilk iş: bu sürümü yayınlama
+## Son oturumda canlıda doğrulanan durum
 
-1. Aynı çıktılar klasöründeki `firestore.rules` dosyasının tamamını Firebase → Firestore Database → Rules alanına yapıştır ve Publish seç. Bu güncelleme olmadan yeni liste özelliğine erişim reddedilir.
-2. PowerShell:
+- Firestore liste kuralları yayınlandı; GitHub Pages ve Vercel dağıtımları tamamlandı.
+- Liste seçmek tek başına ekleme yapmıyor; Add to list düğmesiyle ekleniyor ve başarı bildirimi gösteriliyor. Kullanıcı bu akışı beğendi.
+- Liste ve içindeki ürünler sayfa yenilemesinden sonra korunuyor.
+- USD sepet ödemesi doğrulanınca satın alınan ürünler sepetten düştü ve yenilemede geri gelmedi.
+- Hesap bölümlerinin ayrımı daha belirgin; kullanıcı daha kapsamlı bir hesap sayfası tasarımını ayrı iyileştirme adımı olarak istiyor.
+- Compare alanı büyütüldü; değişiklik sonrası mobil/masaüstü son görsel kontrolü geniş taramada yapılacak.
+- Yayın betiğinin push + manuel çift tetiklemesi düzeltildi. Yeni commit gönderilirse yalnızca push yayını başlatır; eski Cancelled kayıtları geçmişte kalır.
+- iyzico tarafında TRY 1.00 yetersiz bakiye hatası görüldü. Aynı oturumda başarılı kartla yeniden deneme de doğrulandı. Aisle'ın ilk reddi yalnızca beklemede göstermesi hâlâ açıklığa kavuşturulacak.
+- Açık GitHub Google API Key uyarısı henüz kapatılmadı. Ayrı güvenlik taraması tamamlanmış değil.
+- Eski favoriler test öncesinde silinmişti; eski favori verisinin korunması doğrulanamadı. Yeni favori ekleme/yenileme/yeniden giriş testi final kontrolünde yapılacak.
+- Liste yeniden adlandırma/silme, başka hesapla izolasyon ve ödeme sırasında sonradan ürün ekleme gibi uç durumlar canlıda henüz topluca test edilmedi.
 
-   ```powershell
-   powershell -NoProfile -File "D:\Codex\aisle\scripts\publish-github.ps1"
-   ```
-
-3. En yeni GitHub Pages çalışması ve Vercel yayını başarılı olduğunda Ctrl+F5 yap.
-4. Yeni bir USD ödeme oturumu açıp doğrula: satın alınan adetlerin sepetten düştüğünü, yenileme ve yeniden giriş sonrasında da doğru kaldığını kontrol et. Önceki sürümden açık ödeme oturumunu kullanma.
-5. Hesap → Shopping lists bölümünde liste oluştur; ürün detayından o listeye ekle; yeniden adlandır, ürün çıkar ve liste sil. Yenileme/yeniden girişle kalıcılığı kontrol et.
+Sonraki oturum doğrudan güvenlik taramasıyla başlayacak; mevcut çalışan sürümü yeniden kurmaya veya aynı ödemeyi sebepsiz tekrarlamaya gerek yok.
 
 ## Ürünü bitirme sırası
 
 1. Yayınlanan sürümde aşağıdaki ayrı güvenlik taramasını yap; GitHub anahtar uyarısını incele ve bulguları düzelt. İnceleme bitmeden güvenli olduğumuzu veya uyarının çözüldüğünü söyleme.
 2. Ödeme test araçlarını normal alışveriş akışından ayır: 1 TL tanılama ve çevrimdışı demo kontrolleri normal checkout'u karıştırmasın. Başarı, bekleme, reddetme ve yeniden deneme mesajlarını netleştir. Sağlayıcı hatasını doğrulamadan başarısız ödeme diye sınıflandırma.
 3. Pip'i gerçek AI yardımcısına bağla. API anahtarı yalnızca sunucuda; yalnızca mevcut katalog ürünlerini önerir, fiyat/özellik uydurmaz. Kişisel bilgi veya ödeme bilgisi modele gönderilmez. Hata/zaman aşımında mevcut katalog yardımcısı kullanılabilir.
-4. Mobil görünüm, klavye kullanımı, yüklenme/hata/boş durumları ve kullanıcıya gösterilen teknik metinleri son kez düzenle. Yeni özellik kapsamını büyütme.
+4. Hesap sayfasını ayrı bir tasarım adımı olarak yeniden ele al: favoriler, listeler, demo siparişleri ve hesap bilgilerine daha anlaşılır gezinme ve görsel hiyerarşi sağla. Liste/favori ayrımını koru. Mobil görünüm, klavye kullanımı, yüklenme/hata/boş durumları ve teknik metinleri de düzenle; kapsamı yeni özelliklerle büyütme.
 5. Yeni değişiklikleri de kapsayan son güvenlik kontrolünü yap. Özellikle yeni AI anahtarının repo, geçmiş, log ve istemci paketlerine girmediğini doğrula.
 6. Aşağıdaki kapsamlı bug taramasını yap, bulunan sorunları düzelt, etkilenen akışları tekrar test et.
 7. Son sürümü yayınla. Oturum açmamış bir ziyaretçi olarak canlı bağlantıyı ve public repoyu kontrol et. Agent kayıtlarının düzenli commit edildiğini doğrula.
@@ -42,7 +45,7 @@
 - Gerçek bir gizli anahtar sızıntısında önce sağlayıcıdan iptal et/yenile, sonra ortam değişkenlerini güncelle ve tekrar yayınla. Dosyadan silmek geçmişteki sızıntıyı düzeltmez. Gerekirse geçmiş temizliği planını ayrıca değerlendir; commit geçmişini kendiliğinden yeniden yazma.
 - Bulguları önem derecesi, kanıt konumu, düzeltme ve tekrar test sonucu ile kaydet. Taramayı geçmeden tamamlandı diye işaretleme. Otomatik agent kayıtlarını gelişigüzel silme veya değiştirme.
 
-Güncel sıra: son değişiklikleri yayınlama → güvenlik taraması ve düzeltmeler → kalan özellikler → son güvenlik kontrolü → geniş bug taraması → videolar ve teslim.
+Güncel sıra: güvenlik taraması ve düzeltmeler → ödeme akışını sadeleştirme → gerçek AI Pip → hesap sayfası tasarımını iyileştirme ve mobil düzenlemeler → son güvenlik kontrolü → geniş bug taraması ve düzeltmeler → son yayın kontrolü → videolar ve teslim.
 
 ## Son geniş kapsamlı bug taraması
 
@@ -66,3 +69,4 @@ Güncel sıra: son değişiklikleri yayınlama → güvenlik taraması ve düzel
 - Demo/test ödemeleri gerçek ödeme veya gerçek sipariş işleme olarak anlatılmamalı. Kalıcı sağlayıcı onaylı sipariş geçmişi/fulfilment henüz yok.
 
 Bu plan kaydedildi. Otomatik alarm veya sabah çalışması planlanmadı; kullanıcı döndüğünde devam edilecek.
+
