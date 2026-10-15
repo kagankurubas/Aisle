@@ -91,3 +91,8 @@ User requires a free exam implementation. Replaced OpenAI with fixed Gemini 3.5 
 ## Anonymous demo, themes, test cards and product pages
 
 26 application tests and 8 Firestore emulator tests pass; production build passes. JWT tests now accept a correctly signed Firebase anonymous-provider identity and reject unverified password claims even with a client demo flag. Rules tests allow demo owner cart/list operations and deny cross-owner access, invalid quantities and fake paid orders. Browser checks cover prominent demo button (live activation pending), desktop/mobile 390px dark product pages, quick-view full-page link, refresh, light/dark persistence, review focus, unknown product page and test-card copy confirmation. Existing shelf lines removed. No live anonymous auth, payment or AI call was made by the assistant for this release. See DEMO-ACCOUNT.md for activation and remaining limits.
+
+
+## Product separation polish
+
+Added subtle rounded image backgrounds, wider horizontal/vertical product gaps and more space between category groups; shelf lines remain removed. Build passes. Browser visual checks passed in light/dark desktop and 390px mobile. Styling-only change; business rules and persistence unchanged.

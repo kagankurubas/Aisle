@@ -694,13 +694,13 @@ label input {
   gap: 8px;
 }
 .shelf {
-  margin-bottom: 43px;
+  margin-bottom: 64px;
 }
 .shelf-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 9px;
+  margin-bottom: 22px;
 }
 .shelf-heading > div {
   display: flex;
@@ -724,7 +724,7 @@ label input {
 .product-shelf {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 28px;
+  gap: 36px;
   position: relative;
 }
 .product-shelf:before { display: none; }
@@ -739,6 +739,8 @@ label input {
   align-items: flex-end;
   justify-content: center;
   padding: 8px 10px 0;
+  background: var(--product-well, #eeefe7);
+  border-radius: 14px;
 }
 .image-link {
   padding: 0;
@@ -763,7 +765,7 @@ label input {
 }
 .save-button {
   position: absolute;
-  right: 0;
+  right: 10px;
   top: 12px;
   color: var(--text-secondary, #89927e);
   background: #f8f7f2a6;
@@ -772,7 +774,7 @@ label input {
   color: var(--text-secondary, #34583e);
 }
 .product-info {
-  padding: 23px 9px 0;
+  padding: 20px 7px 0;
 }
 .product-info > .eyebrow {
   font-size: 8px;
@@ -2216,7 +2218,7 @@ footer p {
   }
   .shelf-heading {
     align-items: flex-start;
-    margin-bottom: 8px;
+    margin-bottom: 18px;
   }
   .shelf-heading h3 {
     font-size: 12px;
@@ -2230,7 +2232,7 @@ footer p {
   }
   .product-shelf {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 21px 18px;
+    gap: 34px 20px;
 
   }
   .product-shelf:before {
@@ -2245,8 +2247,8 @@ footer p {
     width: 155px;
   }
   .save-button {
-    right: 0;
-    top: 5px;
+    right: 5px;
+    top: 7px;
     min-width: 30px;
     min-height: 30px;
     width: 30px;
@@ -2307,7 +2309,7 @@ footer p {
     height: auto;
   }
   .shelf {
-    margin-bottom: 30px;
+    margin-bottom: 48px;
   }
   .guide-banner {
     margin: 5px 5% 0;
