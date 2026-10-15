@@ -85,3 +85,13 @@ References:
 - https://docs.iyzico.com/en/advanced/response-signature-validation
 - https://docs.iyzico.com/en/getting-started/preliminaries/authentication/hmacsha256-auth
 - https://firebase.google.com/docs/auth/admin/verify-id-tokens
+
+## User-observed deployment result
+
+The user completed the hosted USD sandbox flow with a cross-border test card and
+shared the Aisle server-verified receipt for USD 129.00, provider reference 38308661.
+The domestic test card was rejected by the provider for foreign currency; use its
+official cross-border test card for USD. A provider-declined transaction still needs
+end-to-end validation. Success now opens the Done screen, showing the verified
+amount/reference and Continue shopping; the offline demo controls are hidden.
+

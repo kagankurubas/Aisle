@@ -1020,7 +1020,9 @@ export default function App() {
               ))}
             {panel === "checkout" && (
               <Checkout
+                key={user?.uid ?? "demo"}
                 cart={cart}
+                continueShopping={() => setPanel(null)}
                 complete={(order) => {
                   setOrders((prev) => [order, ...prev]);
                   setLastOrder(order);

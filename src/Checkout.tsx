@@ -1,20 +1,27 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, LockKeyhole, Truck } from "lucide-react";
 import { imageFor, money, productById } from "./catalog";
 import { totals, type CartLine, type DemoOrder } from "./shop";
-import SandboxPayment from "./SandboxPayment";
+import SandboxPayment, { type SandboxReceipt } from "./SandboxPayment";
 export default function Checkout({
   cart,
   complete,
+  continueShopping,
 }: {
   cart: CartLine[];
   complete: (order: DemoOrder) => void;
+  continueShopping: () => void;
 }) {
   const [step, setStep] = useState(1);
   const [express, setExpress] = useState(false);
   const [decline, setDecline] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [receipt, setReceipt] = useState<SandboxReceipt | null>(null);
+  const completionHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (receipt) completionHeading.current?.focus();
+  }, [receipt]);
   const sum = totals(cart, express);
   async function place() {
     if (busy) return;
@@ -37,6 +44,29 @@ export default function Checkout({
       status: "Confirmed",
     });
   }
+  if (receipt) return (
+    <div className="checkout">
+      <ol className="steps" aria-label="Checkout progress">
+        {["Delivery", "Review & pay", "Done"].map(label => (
+          <li key={label} className="active" aria-current={label === "Done" ? "step" : undefined}>
+            <span><Check size={14} /></span>{label}
+          </li>
+        ))}
+      </ol>
+      <div className="success" role="status">
+        <span className="success-icon"><Check size={35} /></span>
+        <span className="eyebrow">IYZICO SANDBOX · VERIFIED</span>
+        <h3 ref={completionHeading} tabIndex={-1}>Your test payment is complete.</h3>
+        <p>Confirmed directly with iyzico Sandbox. No real money was charged and nothing will be shipped.</p>
+        <div className="confirmation">
+          <span>Provider reference</span><strong>{receipt.paymentId}</strong>
+          <span>Verified test total</span><strong>{money(receipt.total)}</strong>
+        </div>
+        <p className="small muted">Your bag is still available. This test receipt is shown for this session and is not a fulfilment order.</p>
+        <button type="button" className="primary" onClick={continueShopping}>Continue shopping <ArrowRight size={17}/></button>
+      </div>
+    </div>
+  );
   return (
     <div className="checkout">
       <div className="demo-notice">
@@ -153,7 +183,7 @@ export default function Checkout({
                 Choose a provider sandbox test or an offline demo order below.
                 Both use test data and never create a real charge or shipment.
               </p>
-              <SandboxPayment cart={cart} express={express} />
+              <SandboxPayment cart={cart} express={express} onVerified={setReceipt} />
               <hr />
               <h4>Or explore the offline demo</h4>
               <label className="radio-option">

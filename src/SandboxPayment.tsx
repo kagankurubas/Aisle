@@ -6,7 +6,8 @@ import type { CartLine } from './shop';
 
 const endpoint = 'https://aisle-roan.vercel.app/api/payment';
 type Result = {status:'success'|'pending'|'declined';message:string;paymentId?:string;total?:number};
-export default function SandboxPayment({cart,express}:{cart:CartLine[];express:boolean}) {
+export type SandboxReceipt = {paymentId:string;total:number};
+export default function SandboxPayment({cart,express,onVerified}:{cart:CartLine[];express:boolean;onVerified:(receipt:SandboxReceipt)=>void}) {
   const [busy,setBusy] = useState(false);
   const [error,setError] = useState('');
   const [session,setSession] = useState<{ticket:string;url:string;uid:string}|null>(null);
@@ -48,7 +49,13 @@ export default function SandboxPayment({cart,express}:{cart:CartLine[];express:b
   async function check() {
     if (!session || request.current) return;
     request.current=true;setBusy(true);setError('');
-    try { const {data} = await call('status',{ticket:session.ticket},session.uid);setResult(data); }
+    try {
+      const {data} = await call('status',{ticket:session.ticket},session.uid);
+      if(data.status === 'success') {
+        if(typeof data.paymentId !== 'string' || !data.paymentId || !Number.isSafeInteger(data.total) || data.total <= 0) throw new Error('Incomplete payment confirmation. Please verify again.');
+        onVerified({paymentId:data.paymentId,total:data.total});
+      } else setResult(data);
+    }
     catch(e) {setError(e instanceof Error?e.message:'Could not verify payment.');}
     finally {request.current=false;setBusy(false);}
   }
