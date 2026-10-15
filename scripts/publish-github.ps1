@@ -32,8 +32,12 @@ if ($aisleRemotes -contains 'origin') {
   git push -u origin main
   if ($LASTEXITCODE -ne 0) { throw 'Git push failed. No force push was attempted.' }
 } else {
-  gh repo create $aisleRepo --public --source . --remote origin --push --description 'A considered open-shelf store with product comparison and secure integration boundaries'
-  if ($LASTEXITCODE -ne 0) { throw 'Repository creation failed. No existing repository was overwritten.' }
+  $aisleVisibility = (gh repo view $aisleRepo --json visibility --jq .visibility).Trim()
+  if ($LASTEXITCODE -ne 0 -or $aisleVisibility -ne 'PUBLIC') { throw 'Expected your existing public Aisle repository.' }
+  git remote add origin "https://github.com/$aisleRepo.git"
+  if ($LASTEXITCODE -ne 0) { throw 'Cannot add origin.' }
+  git push -u origin main
+  if ($LASTEXITCODE -ne 0) { throw 'Push failed. No force push was attempted; ask Codex to inspect the remote history.' }
 }
 $aislePagesMode = gh api "repos/$aisleRepo/pages" --jq .build_type 2>$null
 if ($LASTEXITCODE -ne 0) {
@@ -59,4 +63,5 @@ if ($LASTEXITCODE -ne 0) { throw 'Source pushed. Workflow may not be indexed yet
 Write-Output "Repository: https://github.com/$aisleRepo"
 Write-Output "Expected site after successful deployment: https://$aisleLogin.github.io/Aisle/"
 Write-Output "Check deployment: gh run list --repo $aisleRepo --workflow deploy.yml --limit 3"
+
 
