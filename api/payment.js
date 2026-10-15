@@ -28,7 +28,7 @@ export default async function handler(req,res) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const config = configuration();
     const uid = await authenticate(req.headers.authorization);
-    if (action === 'start') return res.status(200).json(await startPayment(uid,body?.lines,body?.express,config));
+    if (action === 'start') return res.status(200).json(await startPayment(uid,body?.lines,body?.express,config,fetch,body?.mode ?? 'bag'));
     if (action === 'status') return res.status(200).json(await paymentStatus(uid,body?.ticket,config));
     throw new PaymentError('Unknown payment action.',404);
   } catch (error) {

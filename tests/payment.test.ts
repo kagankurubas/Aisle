@@ -20,7 +20,9 @@ test('encrypted payment sessions cannot be altered, expired, or read by another 
   assert.equal(unseal(ticket,key,'alice',1000).uid,'alice');
   assert.throws(()=>unseal(ticket,key,'bob',1000));
   assert.throws(()=>unseal(ticket,key,'alice',2000));
-  assert.throws(()=>unseal('A'+ticket.slice(1),key,'alice',1000));
+  const altered=Buffer.from(ticket,'base64url');
+  altered[altered.length-1] ^= 1;
+  assert.throws(()=>unseal(altered.toString('base64url'),key,'alice',1000));
 });
 test('result requires valid provider signature, basket, currency, amount and approved fraud status',()=>{
   const session={id:'basket-1',token:'token-1',total:12900};
@@ -65,4 +67,21 @@ test('API refuses foreign origins and unsafe methods; callback never claims paym
   res=response();await handler({url:'/api/payment?action=start',method:'GET',headers:{origin:'https://kagankurubas.github.io'}},res);assert.equal(res.code,405);
   res=response();await handler({url:'/api/payment?action=status',method:'OPTIONS',headers:{origin:'https://kagankurubas.github.io'}},res);assert.equal(res.code,204);assert.equal(res.headers['Access-Control-Allow-Origin'],'https://kagankurubas.github.io');
   res=response();await handler({url:'/api/payment?action=callback',method:'POST',headers:{},body:{paymentStatus:'SUCCESS'}},res);assert.equal(res.code,200);assert.ok(!res.body.includes('payment verified'));assert.ok(res.body.includes('Verify payment'));
+});
+test('TRY error diagnostic is a fixed separate amount and cannot confirm a USD bag',async()=>{
+  const config={apiKey:'sandbox-fixture',secret,stateKey:key};
+  const fakeFetch=async(_url:string,options:{body:string})=>{
+    const body=JSON.parse(options.body);
+    assert.equal(body.currency,'TRY');assert.equal(body.price,'1.00');assert.equal(body.paidPrice,'1.00');
+    assert.equal(body.basketItems.length,1);assert.equal(body.basketItems[0].id,'diagnostic');
+    return {ok:true,json:async()=>({status:'success',conversationId:body.conversationId,token:'diagnostic-token',signature:signature([body.conversationId,'diagnostic-token'],secret),paymentPageUrl:'https://sandbox-cpp.iyzipay.com/test'})};
+  };
+  const result=await startPayment('alice',[{id:100,quantity:2}],true,config,fakeFetch,'error-test');
+  assert.equal(result.total,100);assert.equal(result.currency,'TRY');
+  const session=unseal(result.ticket,key,'alice');assert.equal(session.mode,'error-test');assert.equal(session.currency,'TRY');
+  const response={status:'success',paymentStatus:'SUCCESS',paymentId:'123',currency:'TRY',basketId:session.id,conversationId:session.id,paidPrice:1,price:1,token:session.token,fraudStatus:1};
+  const signed={...response,signature:signature([response.paymentStatus,response.paymentId,response.currency,response.basketId,response.conversationId,'1','1',response.token],secret)};
+  assert.equal(verifiedResult(signed,session,secret).mode,'error-test');
+  assert.throws(()=>verifiedResult(signed,{...session,currency:'USD'},secret));
+  await assert.rejects(startPayment('alice',[],false,config,fakeFetch,'live'));
 });

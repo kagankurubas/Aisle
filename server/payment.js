@@ -90,13 +90,18 @@ export async function authenticate(header) {
   }
   return verifyClaims(header.slice(7),certCache.certs,project);
 }
-export async function startPayment(uid, lines, express, config, fetcher = fetch) {
-  const sum = quote(lines,express);
+export async function startPayment(uid, lines, express, config, fetcher = fetch, mode = 'bag') {
+  if (!['bag','error-test'].includes(mode)) reject('Invalid sandbox mode.');
+  const diagnostic = mode === 'error-test';
+  const currency = diagnostic ? 'TRY' : 'USD';
+  const sum = diagnostic
+    ? {total:100,shipping:0,items:[{id:'diagnostic',name:'Sandbox error test - not a store order',category1:'Test',itemType:'VIRTUAL',price:'1.00'}]}
+    : quote(lines,express);
   const id = 'AISLE-' + randomUUID();
   // Sandbox fixture only: never request identity numbers or real delivery data.
   const address = {contactName:'Demo Shopper',city:'Istanbul',country:'Turkey',address:'Example Street 1',zipCode:'34000'};
   const payload = {
-    locale:'en', conversationId:id,basketId:id,price:(sum.total/100).toFixed(2),paidPrice:(sum.total/100).toFixed(2),currency:'USD',paymentGroup:'PRODUCT',enabledInstallments:[1],
+    locale:'en', conversationId:id,basketId:id,price:(sum.total/100).toFixed(2),paidPrice:(sum.total/100).toFixed(2),currency,paymentGroup:'PRODUCT',enabledInstallments:[1],
     callbackUrl:'https://aisle-roan.vercel.app/api/payment?action=callback',
     buyer:{id,name:'Demo',surname:'Shopper',identityNumber:'74300864791',email:'demo@example.com',gsmNumber:'+905350000000',registrationAddress:address.address,city:address.city,country:address.country,zipCode:address.zipCode,ip:'127.0.0.1'},
     shippingAddress:address,billingAddress:address,basketItems:sum.items,
@@ -107,17 +112,17 @@ export async function startPayment(uid, lines, express, config, fetcher = fetch)
   checkSignature([result.conversationId,result.token],result.signature,config.secret);
   const url = new URL(result.paymentPageUrl);
   if (url.protocol !== 'https:' || !['sandbox-cpp.iyzipay.com','sandbox-merchantgw.iyzipay.com','sandbox-consumerapigw.iyzipay.com'].includes(url.hostname)) reject('Unexpected payment page address.',502);
-  const ticket = seal({uid,id,token:result.token,total:sum.total,shipping:sum.shipping,exp:Date.now()+30*60*1000},config.stateKey);
-  return {url:url.href,ticket,total:sum.total,currency:'USD'};
+  const ticket = seal({uid,id,token:result.token,total:sum.total,shipping:sum.shipping,currency,mode,exp:Date.now()+30*60*1000},config.stateKey);
+  return {url:url.href,ticket,total:sum.total,currency,mode};
 }
 export function verifiedResult(result, session, secret) {
   if (result.status !== 'success') return {status:'pending',message:'Payment has not completed. Finish the iyzico test screen, then check again.'};
   checkSignature([result.paymentStatus,result.paymentId,result.currency,result.basketId,result.conversationId,String(Number(result.paidPrice)),String(Number(result.price)),result.token],result.signature,secret);
-  if (result.token !== session.token || result.basketId !== session.id || result.conversationId !== session.id || result.currency !== 'USD' || Math.round(Number(result.price)*100) !== session.total || Math.round(Number(result.paidPrice)*100) !== session.total) reject('Payment details did not match this bag.',502);
+  if (result.token !== session.token || result.basketId !== session.id || result.conversationId !== session.id || result.currency !== (session.currency || 'USD') || Math.round(Number(result.price)*100) !== session.total || Math.round(Number(result.paidPrice)*100) !== session.total) reject('Payment details did not match this test session.',502);
   if (result.paymentStatus === 'FAILURE') return {status:'declined',message:'Sandbox payment was declined. Your bag is unchanged.'};
   if (result.paymentStatus !== 'SUCCESS' || Number(result.fraudStatus) !== 1) return {status:'pending',message:'Sandbox payment is awaiting approval. Your bag is unchanged.'};
   if (!result.paymentId) reject('Missing payment reference.',502);
-  return {status:'success',id:session.id,paymentId:String(result.paymentId),total:session.total,currency:'USD',message:'Verified with iyzico Sandbox. No real charge or shipment.'};
+  return {status:'success',id:session.id,paymentId:String(result.paymentId),total:session.total,currency:session.currency || 'USD',mode:session.mode || 'bag',message:session.mode === 'error-test' ? 'The separate TRY 1.00 diagnostic completed successfully. This is not a payment for your bag. No real charge or shipment.' : 'Verified with iyzico Sandbox. No real charge or shipment.'};
 }
 export async function paymentStatus(uid,ticket,config,fetcher = fetch) {
   const session = unseal(ticket,config.stateKey,uid);

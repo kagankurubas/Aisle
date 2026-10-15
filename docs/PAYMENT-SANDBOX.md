@@ -95,3 +95,15 @@ official cross-border test card for USD. A provider-declined transaction still n
 end-to-end validation. Success now opens the Done screen, showing the verified
 amount/reference and Continue shopping; the offline demo controls are hidden.
 
+
+## Separate TRY error diagnostic
+
+The hosted form rejected the insufficient-funds card before submission for a USD
+transaction (local-card foreign-currency restriction). Checkout now offers a clearly
+labelled separate TRY 1.00 diagnostic, with a virtual test item and no bag conversion.
+Its currency and mode are encrypted into the session and checked on retrieval; a
+diagnostic success cannot complete the USD bag. Provider-hosted decline and recovery
+still need user validation. Thirteen tests pass, including fixed diagnostic amount
+and currency separation; the production build passes. The tamper test now flips an
+actual encrypted byte rather than replacing a character that could already match.
+
