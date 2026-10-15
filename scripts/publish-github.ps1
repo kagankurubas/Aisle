@@ -6,7 +6,7 @@ gh auth status
 if ($LASTEXITCODE -ne 0) { throw 'Sign into GitHub CLI in this terminal first: gh auth login -h github.com' }
 $aisleLogin = (gh api user --jq .login).Trim()
 if ($LASTEXITCODE -ne 0 -or $aisleLogin -ne 'kagankurubas') { throw 'Expected GitHub account kagankurubas. No repository was created.' }
-$aisleRepo = "$aisleLogin/aisle"
+$aisleRepo = "$aisleLogin/Aisle"
 $aisleTracked = @(git ls-files)
 if ($LASTEXITCODE -ne 0) { throw 'Cannot read tracked files.' }
 if ($aisleTracked | Where-Object { $_ -match '(^|/)\.env($|\.)' -and $_ -notmatch '\.env\.example$' }) { throw 'An environment file is tracked. Remove it from Git before publishing.' }
@@ -57,5 +57,6 @@ if (Test-Path -LiteralPath '.env.local') {
 gh workflow run deploy.yml --repo $aisleRepo --ref main
 if ($LASTEXITCODE -ne 0) { throw 'Source pushed. Workflow may not be indexed yet; rerun this script shortly or use the Actions tab.' }
 Write-Output "Repository: https://github.com/$aisleRepo"
-Write-Output "Expected site after successful deployment: https://$aisleLogin.github.io/aisle/"
+Write-Output "Expected site after successful deployment: https://$aisleLogin.github.io/Aisle/"
 Write-Output "Check deployment: gh run list --repo $aisleRepo --workflow deploy.yml --limit 3"
+
