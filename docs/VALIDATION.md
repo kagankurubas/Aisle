@@ -76,3 +76,8 @@ Preview screenshot: outputs/aisle-checkout-clean.png in the chat output director
 ## Pip AI integration
 
 22 automated tests and production build pass. New tests cover catalog parity, bounded/redacted context, strict configuration, durable quotas, output ID/budget validation, provider failures and route authentication/origins. Local guest browser view and sign-in handoff checked. Provider tests use injected fixtures: live OpenAI and Upstash validation remains pending user credentials. See PIP-SETUP.md.
+
+
+### Zero-budget provider change
+
+User requires a free exam implementation. Replaced OpenAI with fixed Gemini 3.5 Flash-Lite, server-only GEMINI_API_KEY; no paid fallback. Updated privacy disclosure for Google Free Tier product improvement. 23 tests and production build pass, including explicit provider 429/no-fallback and safety/truncation handling. Live Gemini/Redis calls remain pending user configuration of an unbilled Free Tier Google project and Free Redis.

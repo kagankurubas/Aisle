@@ -281,10 +281,11 @@ export default function Pip({
         </button>
       )}
       <p className="small muted">
-        Your question and up to two previous exchanges are sent to OpenAI.
-        Please don’t share personal or payment details. Chats aren’t saved by
-        Aisle and clear when you close Pip. AI can make mistakes; check the
-        product details. Demo prices are USD.
+        Your question and up to two previous exchanges are sent to Google
+        Gemini’s free service. Google may use this content to improve its
+        products. Please don’t share personal or payment details. Chats aren’t
+        saved by Aisle and clear when you close Pip. AI can make mistakes; check
+        the product details. Demo prices are USD.
       </p>
     </div>
   );

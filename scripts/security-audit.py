@@ -24,7 +24,7 @@ PATTERNS = {
     'openai-secret': re.compile(rb'\bsk-(?:proj-|svcacct-)?[0-9A-Za-z_-]{30,}'),
     'aws-access-id': re.compile(rb'\b(?:AKIA|ASIA)[A-Z0-9]{16}\b'),
     'jwt': re.compile(rb'\beyJ[0-9A-Za-z_-]{10,}\.eyJ[0-9A-Za-z_-]{10,}\.[0-9A-Za-z_-]{30,}'),
-    'sensitive-env-literal': re.compile(rb'(?:IYZICO_SANDBOX_(?:API_KEY|SECRET_KEY)|PAYMENT_SESSION_KEY|OPENAI_API_KEY)\s*=\s*[\x22\x27]?[0-9A-Za-z_-]{24,}'),
+    'sensitive-env-literal': re.compile(rb'(?:IYZICO_SANDBOX_(?:API_KEY|SECRET_KEY)|PAYMENT_SESSION_KEY|OPENAI_API_KEY|GEMINI_API_KEY|UPSTASH_REDIS_REST_TOKEN)\s*=\s*[\x22\x27]?[0-9A-Za-z_-]{24,}'),
 }
 findings = []
 def scan(data, location, revision=None):

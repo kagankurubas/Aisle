@@ -96,4 +96,4 @@ remaining deployment checks, checkout test-tool cleanup, AI integration and fina
 
 ### Pip AI assistant
 
-Pip now has a server-side OpenAI Responses integration with catalog-grounded product recommendations, follow-up questions, explicit product actions, verified Firebase authentication and durable Redis usage limits. Production credentials and live acceptance tests are still pending. See [setup, privacy, limits and validation](docs/PIP-SETUP.md). Never place AI/Redis secrets in frontend variables.
+Pip now has a server-side Gemini integration for an unbilled Free Tier project with catalog-grounded product recommendations, follow-up questions, explicit product actions, verified Firebase authentication and durable Redis usage limits. Production credentials and live acceptance tests are still pending. See [setup, privacy, limits and validation](docs/PIP-SETUP.md). Never place AI/Redis secrets in frontend variables.

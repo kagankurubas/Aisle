@@ -94,3 +94,12 @@ Normal USD checkout tek akışa indirildi; tanılama ve çevrimdışı siparişl
 - 22 otomatik test ve üretim derlemesi geçti; yerel misafir arayüzü kontrol edildi.
 - Canlı AI testi henüz yapılmadı: Vercel Production için dört değişken gerekiyor. Adımlar: `docs/PIP-SETUP.md`. Anahtarlar sohbetten paylaşılmayacak.
 - Sırada: anahtarların eklenmesi → yayın → canlı öneri/bütçe/karşılaştırma/kota testleri → hesap UX ve mobil iyileştirmeleri → son güvenlik taraması → kapsamlı bug taraması → video hazırlığı.
+
+
+## Sınav bütçesi: sıfır — güncel Pip kararı
+
+- Önceki OpenAI kurulum adımı iptal: ücretli API kullanılmayacak. Kod Gemini ücretsiz katmanına uyarlandı; OpenAI çağrısı veya ücretli yedek yok.
+- Google AI Studio’da Firebase’den ayrı, faturalandırma bağlanmamış Free Tier proje ve yeni anahtar; Upstash Free kullanılacak. Kart/kredi/ücretli plan açılmayacak.
+- Vercel Production: GEMINI_API_KEY, UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, PIP_ENABLED=true. Firebase browser key bu işe kullanılmayacak, anahtarlar sohbete/depo içine yazılmayacak.
+- 23 test ve derleme geçti; canlı AI/Redis testi henüz yapılmadı. Kota dolduğunda açık mesajla duracak; ücretli servise geçmeyecek.
+- Güncel kurulum ve kabul testleri: docs/PIP-SETUP.md. Sonraki UX, güvenlik ve geniş bug taraması sırası korunuyor.

@@ -78,7 +78,7 @@ test("guide is disabled without all server secrets and refuses unsafe Redis targ
   assert.throws(() => guideConfig({}));
   const base = {
     PIP_ENABLED: "true",
-    OPENAI_API_KEY: "fixture",
+    GEMINI_API_KEY: "fixture",
     UPSTASH_REDIS_REST_TOKEN: "fixture",
     UPSTASH_REDIS_REST_URL: "https://example.upstash.io",
   };
@@ -161,42 +161,65 @@ test("durable counters reserve before spending, enforce limits and fail closed o
     { status: 503 },
   );
 });
-test("Responses request uses bounded catalog schema, no stored response, refuses invalid output and hides provider errors", async () => {
+test("Gemini request uses catalog schema, no tools, bounded output and sanitized errors", async () => {
   const input = guideInput({
-    messages: [{ role: "user", content: "commute" }],
+    messages: [
+      { role: "user", content: "commute" },
+      { role: "assistant", content: "AirPods or Beats Flex" },
+      { role: "user", content: "battery?" },
+    ],
     budget: 15000,
   });
   const result = await askGuide(
     input,
     { key: "fixture" },
     async (url: string, options: any) => {
-      assert.equal(url, "https://api.openai.com/v1/responses");
+      assert.equal(
+        url,
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+      );
+      assert.ok(!url.includes("fixture"));
+      assert.equal(options.headers["x-goog-api-key"], "fixture");
+      assert.ok(!options.headers.Authorization);
       const body = JSON.parse(options.body);
       assert.equal(body.store, false);
-      assert.equal(body.max_output_tokens, 900);
-      assert.equal(body.text.format.strict, true);
-      assert.ok(!body.instructions.includes('"name":"AirPods Max"'));
+      assert.equal(body.generationConfig.maxOutputTokens, 900);
+      assert.equal(body.generationConfig.responseMimeType, "application/json");
+      assert.equal(
+        body.generationConfig.responseJsonSchema.additionalProperties,
+        false,
+      );
+      assert.equal(body.generationConfig.thinkingConfig.includeThoughts, false);
+      assert.equal(body.tools, undefined);
+      assert.deepEqual(
+        body.contents.map((m: any) => m.role),
+        ["user", "model", "user"],
+      );
+      assert.ok(
+        !body.systemInstruction.parts[0].text.includes('"name":"AirPods Max"'),
+      );
       return {
         ok: true,
         json: async () => ({
-          status: "completed",
-          output: [
+          candidates: [
             {
-              type: "message",
-              content: [
-                {
-                  type: "output_text",
-                  text: JSON.stringify({
-                    answer: "Lightweight commuting option.",
-                    products: [
-                      {
-                        id: 100,
-                        reason: "5 hours battery; no noise cancellation.",
-                      },
-                    ],
-                  }),
-                },
-              ],
+              finishReason: "STOP",
+              content: {
+                parts: [
+                  { thought: true, text: "private thought" },
+                  {
+                    text: JSON.stringify({
+                      answer: "Lightweight commuting option.",
+                      products: [
+                        {
+                          id: 100,
+                          reason: "5 hours battery; no noise cancellation.",
+                        },
+                      ],
+                    }),
+                  },
+                ],
+              },
             },
           ],
         }),
@@ -208,6 +231,7 @@ test("Responses request uses bounded catalog schema, no stored response, refuses
     () =>
       askGuide(input, { key: "fixture" }, async () => ({
         ok: false,
+        status: 403,
         json: async () => ({ error: "secret provider details" }),
       })),
     {
@@ -220,9 +244,48 @@ test("Responses request uses bounded catalog schema, no stored response, refuses
     () =>
       askGuide(input, { key: "fixture" }, async () => ({
         ok: true,
-        json: async () => ({ status: "incomplete" }),
+        json: async () => ({ candidates: [{ finishReason: "MAX_TOKENS" }] }),
       })),
     { status: 502 },
+  );
+  await assert.rejects(
+    () =>
+      askGuide(input, { key: "fixture" }, async () => ({
+        ok: true,
+        json: async () => ({ promptFeedback: { blockReason: "SAFETY" } }),
+      })),
+    { status: 422 },
+  );
+});
+test("free quota exhaustion never retries or falls back to a paid provider", async () => {
+  let calls = 0;
+  await assert.rejects(
+    () =>
+      askGuide(
+        { messages: [{ role: "user", content: "headphones" }], budget: null },
+        { key: "fixture" },
+        async () => {
+          calls++;
+          return {
+            ok: false,
+            status: 429,
+            json: async () => ({
+              error: { message: "quota exceeded private details" },
+            }),
+          };
+        },
+      ),
+    { status: 429 },
+  );
+  assert.equal(calls, 1);
+  // An old OpenAI key cannot enable the new Gemini integration.
+  assert.throws(() =>
+    guideConfig({
+      PIP_ENABLED: "true",
+      OPENAI_API_KEY: "fixture",
+      UPSTASH_REDIS_REST_URL: "https://example.upstash.io",
+      UPSTASH_REDIS_REST_TOKEN: "fixture",
+    }),
   );
 });
 test("guide route refuses foreign origins, missing auth, malformed bodies; reserves quota before model call", async () => {
