@@ -22,12 +22,16 @@ export default async function handler(req,res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({error:'Use POST.'});
   try {
+    if (!['start','status'].includes(action)) throw new PaymentError('Unknown payment action.',404);
     if (!String(req.headers['content-type']).startsWith('application/json')) throw new PaymentError('Use JSON.',415);
     const raw = typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {});
     if (Buffer.byteLength(raw) > 16000) throw new PaymentError('Request too large.',413);
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const config = configuration();
+    let body;
+    try { body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body; }
+    catch { throw new PaymentError('Invalid JSON.',400); }
+    if (!body || typeof body !== 'object' || Array.isArray(body)) throw new PaymentError('Use a JSON object.',400);
     const uid = await authenticate(req.headers.authorization);
+    const config = configuration();
     if (action === 'start') return res.status(200).json(await startPayment(uid,body?.lines,body?.express,config,fetch,body?.mode ?? 'bag'));
     if (action === 'status') return res.status(200).json(await paymentStatus(uid,body?.ticket,config));
     throw new PaymentError('Unknown payment action.',404);

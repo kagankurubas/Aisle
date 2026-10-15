@@ -70,3 +70,8 @@ Güncel sıra: güvenlik taraması ve düzeltmeler → ödeme akışını sadele
 
 Bu plan kaydedildi. Otomatik alarm veya sabah çalışması planlanmadı; kullanıcı döndüğünde devam edilecek.
 
+
+## Güvenlik taraması ilerleme güncellemesi
+
+İlk kaynak/geçmiş/yayın taraması yapıldı; kapsam ve açık kontroller docs/SECURITY-AUDIT.md içinde. gRPC bağımlılık açığı yerelde düzeltildi; npm audit sıfır, 15 uygulama testi, 7 emülatör testi ve derleme geçti. GitHub özel logları, Firebase website kısıtlamaları ve Vercel değişken/log paneli kontrolleri bekliyor. Güvenlik adımı henüz tamamlandı olarak işaretlenmedi.
+

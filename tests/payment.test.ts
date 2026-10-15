@@ -86,6 +86,14 @@ test('TRY error diagnostic is a fixed separate amount and cannot confirm a USD b
   assert.throws(()=>verifiedResult(signed,{...session,currency:'USD'},secret));
   await assert.rejects(startPayment('alice',[],false,config,fakeFetch,'live'));
 });
+test('API rejects malformed JSON and anonymous requests before consulting payment credentials',async()=>{
+  function response(){return {code:0,body:null as any,setHeader(){},status(code:number){this.code=code;return this;},json(body:any){this.body=body;return this;},end(){return this;}};}
+  const headers={origin:'https://kagankurubas.github.io','content-type':'application/json'};
+  for(const [body,expected] of [['{broken',400],['[]',400],['null',400],['{}',401]] as const){
+    const res=response();await handler({url:'/api/payment?action=start',method:'POST',headers,body},res);assert.equal(res.code,expected);
+  }
+  const res=response();await handler({url:'/api/payment?action=start',method:'POST',headers,body:JSON.stringify({ticket:'x'.repeat(16000)})},res);assert.equal(res.code,413);
+});
 test('paid quantities are removed without clearing later additions or unrelated products',()=>{
   assert.deepEqual(subtractPurchased([{id:100,quantity:2}],[{id:100,quantity:2}]),[]);
   assert.deepEqual(subtractPurchased([{id:100,quantity:3},{id:101,quantity:1}],[{id:100,quantity:2}]),[{id:100,quantity:1},{id:101,quantity:1}]);
