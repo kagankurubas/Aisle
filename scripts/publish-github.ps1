@@ -49,7 +49,7 @@ try {
 } finally {
   $ErrorActionPreference = $aislePreviousPreference
 }
-if ($LASTEXITCODE -ne 0) {
+if ($aislePagesExitCode -ne 0) {
   gh api --method POST "repos/$aisleRepo/pages" -f build_type=workflow --silent
   if ($LASTEXITCODE -ne 0) { throw 'Enable GitHub Actions under repository Settings > Pages, then rerun this script.' }
 } elseif ($aislePagesMode -ne 'workflow') {
@@ -72,6 +72,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Source pushed. Workflow may not be indexed yet
 Write-Output "Repository: https://github.com/$aisleRepo"
 Write-Output "Expected site after successful deployment: https://$aisleLogin.github.io/Aisle/"
 Write-Output "Check deployment: gh run list --repo $aisleRepo --workflow deploy.yml --limit 3"
+
 
 
 
