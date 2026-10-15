@@ -75,3 +75,11 @@ Canlı bozuk JSON denemesi 502 döndü: Vercel'in tembel req.body okuyucusunun k
 
 Kullanıcı güvenlik yayını sonrasında Google girişinin çalıştığını doğruladı. Giriş sonrası yanlış hesap yönlendirmesi düzeltildi; kullanıcı anasayfada kalındığını da doğruladı. Vercel Runtime Logs panelinde erişilebilir en fazla bir saatlik aralıkta ve önerilen ödeme başlangıcı denemesinden sonraki ekranda kayıt görünmedi. Bu, yalnızca görüntülenen kapsamda log olmadığını gösterir; geçmiş logların yokluğu veya her istek metaverisinin incelendiği anlamına gelmez. Kaynak incelemesinde payment handler/provider kodunda console log veya istek/anahtar yazdırma bulunmadı. Sırf denetim amacıyla hassas veri yazdıran bir log eklenmedi. GitHub Secret Scanning uyarısının güncel detayını kullanıcı panelinden doğrulama adımı bekliyor.
 
+
+## GitHub uyarısının sonuçlandırılması
+
+Kullanıcı, Firebase web API anahtarı uyarısını "Won't fix" gerekçesiyle kapattığını doğruladı. Açıklama, anahtarın kasıtlı herkese açık Firebase web yapılandırması olduğu; website/API kısıtlamalarının incelendiği ve Firestore sahiplik kurallarının test edildiği yönünde. Anahtar iptal edilmedi; iptal edilmiş gibi işaretlenmedi. Bu işlem başka sızıntıların bulunmadığına dair genel garanti değildir.
+
+Vercel Request Logs ekranındaki 401/403/204 kayıtları denetim istekleriyle uyumluydu. Önceki bozuk JSON 502 sorunu düzeltildi; güncel canlı denemede 400 ve "Invalid JSON." yanıtı doğrulandı. Son kullanıcı ödeme başlangıcı kaydı 200 görünüyordu. İncelenen görüntülerde hassas veri görülmedi; bütün tarihsel Vercel loglarının tarandığı iddia edilmiyor.
+
+İlk güvenlik incelemesinin uygulanabilir kaynak/geçmiş/paket, bağımlılık, yetkisiz erişim ve kullanıcı paneli kontrolleri tamamlandı; bilinen GitHub uyarısı doğru gerekçeyle sonuçlandırıldı. App Check/global rate limiting, toplam liste kotası, anlık token iptal kontrolü ve tüm tarihsel log kapsamı gibi bu raporda kayıtlı sınırlar devam ediyor. Yeni AI bağlantısından sonra son güvenlik kontrolü yeniden yapılacak.

@@ -75,3 +75,8 @@ Bu plan kaydedildi. Otomatik alarm veya sabah çalışması planlanmadı; kullan
 
 İlk kaynak/geçmiş/yayın taraması yapıldı; kapsam ve açık kontroller docs/SECURITY-AUDIT.md içinde. gRPC bağımlılık açığı yerelde düzeltildi; npm audit sıfır, 15 uygulama testi, 7 emülatör testi ve derleme geçti. GitHub özel logları, Firebase website kısıtlamaları ve Vercel değişken/log paneli kontrolleri bekliyor. Güvenlik adımı henüz tamamlandı olarak işaretlenmedi.
 
+
+## Güvenlik incelemesi sonrası devam noktası
+
+Kullanıcı GitHub Firebase web anahtarı uyarısını doğru açıklamayla Won't fix olarak kapattı. İlk güvenlik incelemesi kapsamı ve kalan sınırlar SECURITY-AUDIT.md içinde. Güncel yayında bozuk JSON 400 yanıtı ve girişten sonra anasayfada kalma doğrulandı. Sıradaki ürün işi: normal checkout'tan 1 TL tanılama ve çevrimdışı demo araçlarını ayırıp bekleme/reddetme/yeniden deneme dilini netleştirmek. Ardından gerçek AI Pip, hesap sayfası tasarımı, son güvenlik kontrolü ve geniş bug taraması.
+
