@@ -2618,3 +2618,19 @@ footer p {
 .sandbox-payment h4 { display: flex; align-items: center; gap: 8px; }
 .sandbox-receipt { margin-top: 20px; padding: 16px; background: #edf1e5; overflow-wrap: anywhere; }
 .account-button span { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-picker { margin: 24px 0; padding-block: 20px; border-block: 1px solid var(--line); }
+.list-picker h4 { display: flex; gap: 8px; align-items: center; }
+.list-picker label, .list-create label { display: grid; gap: 9px; font-size: 12px; flex: 1; min-width: 0; }
+.list-create { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; margin: 20px 0; }
+.list-create input, .list-picker select { width: 100%; min-width: 0; padding: 12px; background: transparent; color: var(--ink); border: 1px solid var(--line); border-radius: 3px; font: inherit; }
+.shopping-list { border-top: 1px solid var(--line); margin-top: 24px; padding: 20px 0; }
+.shopping-list summary { cursor: pointer; font-size: 19px; overflow-wrap: anywhere; }
+.shopping-list summary span { font-size: 12px; margin-left: 18px; color: var(--muted); }
+.list-tools { display: flex; gap: 24px; margin: 15px 0; }
+.list-product { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+.list-product img { object-fit: contain; mix-blend-mode: multiply; }
+.list-product-name { flex: 1; min-width: 0; text-align: left; overflow-wrap: anywhere; }
+.list-product-name small { display: block; margin-top: 6px; color: var(--muted); }
+.list-delete-confirm { padding: 15px; background: #edf1e5; margin-bottom: 15px; }
+.list-delete-confirm .text-button { margin-left: 15px; }
+@media (max-width: 500px) { .list-create { align-items: stretch; flex-direction: column; } .list-product { gap: 8px; } }

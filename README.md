@@ -82,3 +82,13 @@ See `recon/RECON.md` for observed Amazon.com flows, supplemental Amazon Turkey s
 6. Explain the implementation, privacy boundaries and integrations intentionally deferred.
 
 The applicant must record and submit the video personally. The assignment's separate one-minute introduction is a separate deliverable.
+
+## Shopping lists and paid bag updates
+
+Verified accounts can create named shopping lists, rename/delete them, and add/remove
+products separately from favorites. Lists live under users/{uid}/lists/{listId}; deploy
+the current firestore.rules before use. A verified USD bag payment subtracts its original
+purchased quantities from the current bag, preserving later additions and unrelated
+products. Separate TRY diagnostics never modify the bag. See docs/NEXT-STEPS.md for
+remaining deployment checks, checkout test-tool cleanup, AI integration and final QA.
+

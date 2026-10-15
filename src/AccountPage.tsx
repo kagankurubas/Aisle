@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Heart,
+  ListPlus,
   Package,
   ShieldCheck,
   ShoppingBag,
@@ -11,6 +12,8 @@ import {
 import type { SessionUser } from "./auth";
 import { imageFor, money, productById, type Product } from "./catalog";
 import "./account-page.css";
+import { ListManager } from "./Lists";
+import type { ListStore } from "./useLists";
 
 export default function AccountPage({
   user,
@@ -24,6 +27,7 @@ export default function AccountPage({
   onSave,
   onProduct,
   onBag,
+  listStore,
 }: {
   user: SessionUser;
   favorites: number[];
@@ -36,6 +40,7 @@ export default function AccountPage({
   onSave: (p: Product) => void;
   onProduct: (p: Product) => void;
   onBag: () => void;
+  listStore: ListStore;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -97,6 +102,10 @@ export default function AccountPage({
             <ShoppingBag size={17} />
             <strong>{bagCount}</strong> in your bag <ArrowRight size={15} />
           </button>
+          <a href="#account-lists">
+            <ListPlus size={17} />
+            <strong>{listStore.lists.length}</strong> shopping lists
+          </a>
         </div>
       </div>
       <div className="account-page-layout">
@@ -110,8 +119,12 @@ export default function AccountPage({
             02 <span>Demo orders</span>
             <ArrowRight size={16} />
           </a>
+          <a href="#account-lists">
+            03 <span>Shopping lists</span>
+            <ArrowRight size={16} />
+          </a>
           <a href="#account-details">
-            03 <span>Account details</span>
+            04 <span>Account details</span>
             <ArrowRight size={16} />
           </a>
           <p>
@@ -209,6 +222,25 @@ export default function AccountPage({
             {orders}
           </section>
           <section
+            id="account-lists"
+            className="account-page-section"
+            tabIndex={-1}
+            aria-labelledby="lists-heading"
+          >
+            <div className="account-section-heading">
+              <div>
+                <span className="eyebrow">03 / MAKE ROOM FOR A PLAN</span>
+                <h2 id="lists-heading">A list for every little thing.</h2>
+              </div>
+              <ListPlus size={23} />
+            </div>
+            <ListManager
+              store={listStore}
+              onAdd={onAdd}
+              onProduct={onProduct}
+            />
+          </section>
+          <section
             id="account-details"
             className="account-page-section"
             tabIndex={-1}
@@ -216,7 +248,7 @@ export default function AccountPage({
           >
             <div className="account-section-heading">
               <div>
-                <span className="eyebrow">03 / THE EVERYDAY DETAILS</span>
+                <span className="eyebrow">04 / THE EVERYDAY DETAILS</span>
                 <h2 id="details-heading">A little about you.</h2>
               </div>
               <ShieldCheck size={23} />

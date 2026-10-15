@@ -36,3 +36,17 @@ The production build and isolated React render checks (populated/empty favorites
 section anchors, Pages asset prefix, no dialog) pass. Responsive CSS is included;
 live browser layout and back-navigation still need user verification after deployment.
 
+
+## Paid cart quantities and shopping lists
+
+14 application tests and 7 Firestore emulator tests pass. The strict production build passes.
+The paid USD session now returns its catalog-validated original lines inside the encrypted
+ticket, and the browser subtracts only those quantities once per payment reference in the
+current app session. TRY diagnostics cannot invoke the paid-bag completion callback.
+Lists are separate owner-only Firestore documents with bounded names/product sets and
+server timestamps; tests cover permitted owner operations and rejected cross-user queries,
+updates/deletes, unverified writes and malformed documents. Updated firestore.rules must
+be published before list use. Live UI/persistence/payment testing remains after deployment.
+Initial emulator launch lacked network permission; after the permission grant the cached
+CLI ran all seven tests successfully against demo-aisle, without touching production data.
+

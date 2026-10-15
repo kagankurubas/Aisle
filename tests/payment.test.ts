@@ -5,6 +5,7 @@ import { generateKeyPairSync, sign } from 'node:crypto';
 import {quote,seal,unseal,signature,verifiedResult,verifyClaims,authorization,startPayment,BASE} from '../server/payment.js';
 import snapshot from '../server/catalog.json' with {type:'json'};
 import {products} from '../src/catalog.ts';
+import {subtractPurchased} from '../src/shop.ts';
 // @ts-ignore Server ESM is executed by Node.
 import handler from '../api/payment.js';
 
@@ -84,4 +85,10 @@ test('TRY error diagnostic is a fixed separate amount and cannot confirm a USD b
   assert.equal(verifiedResult(signed,session,secret).mode,'error-test');
   assert.throws(()=>verifiedResult(signed,{...session,currency:'USD'},secret));
   await assert.rejects(startPayment('alice',[],false,config,fakeFetch,'live'));
+});
+test('paid quantities are removed without clearing later additions or unrelated products',()=>{
+  assert.deepEqual(subtractPurchased([{id:100,quantity:2}],[{id:100,quantity:2}]),[]);
+  assert.deepEqual(subtractPurchased([{id:100,quantity:3},{id:101,quantity:1}],[{id:100,quantity:2}]),[{id:100,quantity:1},{id:101,quantity:1}]);
+  assert.deepEqual(subtractPurchased([{id:101,quantity:1}],[{id:100,quantity:2}]),[{id:101,quantity:1}]);
+  assert.deepEqual(subtractPurchased([{id:100,quantity:1}],[{id:100,quantity:2}]),[]);
 });

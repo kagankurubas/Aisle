@@ -20,6 +20,18 @@ export function totals(cart: CartLine[], express = false) {
     subtotal === 0 ? 0 : express ? 1299 : subtotal >= 7500 ? 0 : 599;
   return { subtotal, shipping, total: subtotal + shipping };
 }
+export function subtractPurchased(
+  cart: CartLine[],
+  purchased: CartLine[],
+): CartLine[] {
+  const paid = new Map(
+    normalizeCart(purchased).map((line) => [line.id, line.quantity]),
+  );
+  return normalizeCart(cart).flatMap((line) => {
+    const quantity = line.quantity - (paid.get(line.id) ?? 0);
+    return quantity > 0 ? [{ id: line.id, quantity }] : [];
+  });
+}
 export function comparable(selected: Product[], candidate: Product) {
   return (
     selected.length < 3 &&

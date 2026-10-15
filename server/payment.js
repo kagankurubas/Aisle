@@ -112,7 +112,7 @@ export async function startPayment(uid, lines, express, config, fetcher = fetch,
   checkSignature([result.conversationId,result.token],result.signature,config.secret);
   const url = new URL(result.paymentPageUrl);
   if (url.protocol !== 'https:' || !['sandbox-cpp.iyzipay.com','sandbox-merchantgw.iyzipay.com','sandbox-consumerapigw.iyzipay.com'].includes(url.hostname)) reject('Unexpected payment page address.',502);
-  const ticket = seal({uid,id,token:result.token,total:sum.total,shipping:sum.shipping,currency,mode,exp:Date.now()+30*60*1000},config.stateKey);
+  const ticket = seal({uid,id,token:result.token,total:sum.total,shipping:sum.shipping,currency,mode,lines:diagnostic ? [] : lines.map(({id,quantity})=>({id,quantity})),exp:Date.now()+30*60*1000},config.stateKey);
   return {url:url.href,ticket,total:sum.total,currency,mode};
 }
 export function verifiedResult(result, session, secret) {
@@ -122,7 +122,7 @@ export function verifiedResult(result, session, secret) {
   if (result.paymentStatus === 'FAILURE') return {status:'declined',message:'Sandbox payment was declined. Your bag is unchanged.'};
   if (result.paymentStatus !== 'SUCCESS' || Number(result.fraudStatus) !== 1) return {status:'pending',message:'Sandbox payment is awaiting approval. Your bag is unchanged.'};
   if (!result.paymentId) reject('Missing payment reference.',502);
-  return {status:'success',id:session.id,paymentId:String(result.paymentId),total:session.total,currency:session.currency || 'USD',mode:session.mode || 'bag',message:session.mode === 'error-test' ? 'The separate TRY 1.00 diagnostic completed successfully. This is not a payment for your bag. No real charge or shipment.' : 'Verified with iyzico Sandbox. No real charge or shipment.'};
+  return {status:'success',id:session.id,paymentId:String(result.paymentId),total:session.total,currency:session.currency || 'USD',mode:session.mode || 'bag',lines:session.lines || [],message:session.mode === 'error-test' ? 'The separate TRY 1.00 diagnostic completed successfully. This is not a payment for your bag. No real charge or shipment.' : 'Verified with iyzico Sandbox. No real charge or shipment.'};
 }
 export async function paymentStatus(uid,ticket,config,fetcher = fetch) {
   const session = unseal(ticket,config.stateKey,uid);

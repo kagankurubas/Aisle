@@ -28,6 +28,18 @@ service cloud.firestore {
       allow create, update: if verifiedOwner(uid) && validState(request.resource.data);
       allow delete: if verifiedOwner(uid);
     }
+    match /users/{uid}/lists/{listId} {
+      allow get, list: if verifiedOwner(uid);
+      allow create, update: if verifiedOwner(uid)
+        && request.resource.data.keys().hasAll(['name', 'products', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['name', 'products', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
+        && request.resource.data.products is list && request.resource.data.products.size() <= 12
+        && request.resource.data.products.hasOnly([99,100,101,103,104,105,107,108,78,79,80,82])
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if verifiedOwner(uid);
+    }
     // A client cannot manufacture a paid order, payment status or admin role.
     // Trusted order processing is deliberately not enabled in the demo.
     match /{document=**} { allow read, write: if false; }

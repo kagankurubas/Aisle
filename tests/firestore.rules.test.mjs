@@ -12,6 +12,7 @@ import {
   collection,
   getDocs,
   serverTimestamp,
+  deleteDoc,
 } from "firebase/firestore";
 let env;
 before(async () => {
@@ -87,4 +88,25 @@ test("user listing and manufactured paid orders are denied", async () => {
       amount: 1,
     }),
   );
+});
+test("verified owners can manage lists while other users cannot read, query, change or delete them", async () => {
+  const alice=verified('alice');const bob=verified('bob');
+  const ref=db=>doc(db,'users','alice','lists','desk');
+  const value={name:'Desk refresh',products:[100,101],updatedAt:serverTimestamp()};
+  await assertSucceeds(setDoc(ref(alice),value));
+  await assertSucceeds(getDocs(collection(alice,'users','alice','lists')));
+  await assertFails(getDoc(ref(bob)));
+  await assertFails(getDocs(collection(bob,'users','alice','lists')));
+  await assertFails(setDoc(ref(bob),value));
+  await assertFails(deleteDoc(ref(bob)));
+  await assertSucceeds(deleteDoc(ref(alice)));
+});
+test("lists reject unverified access, unknown products, oversized names and forged fields", async () => {
+  const alice=verified('alice');
+  const ref=db=>doc(db,'users','alice','lists','desk');
+  const value={name:'Gift ideas',products:[100],updatedAt:serverTimestamp()};
+  const unverified=env.authenticatedContext('alice',{email_verified:false}).firestore();
+  await assertFails(setDoc(ref(unverified),value));
+  await assertFails(getDocs(collection(env.unauthenticatedContext().firestore(),'users','alice','lists')));
+  for(const bad of [{...value,name:''},{...value,name:'x'.repeat(61)},{...value,products:[999]},{...value,products:Array(13).fill(100)},{...value,paid:true},{...value,updatedAt:new Date(0)}]) await assertFails(setDoc(ref(alice),bad));
 });

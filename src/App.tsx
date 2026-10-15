@@ -36,12 +36,15 @@ import {
   normalizeCart,
   searchCatalog,
   totals,
+  subtractPurchased,
   type CartLine,
   type DemoOrder,
 } from "./shop";
 import Modal from "./Modal";
 import { authAvailable, subscribeAuth, type SessionUser } from "./auth";
 import useShoppingData from "./useShoppingData";
+import useLists from "./useLists";
+import { ListPicker } from "./Lists";
 const Account = lazy(() => import("./Account"));
 const AccountPage = lazy(() => import("./AccountPage"));
 const Compare = lazy(() => import("./Compare"));
@@ -83,6 +86,7 @@ export default function App() {
     retry: retrySync,
   } = useShoppingData(user, authReady);
   const signedIn = Boolean(user);
+  const listStore = useLists(user);
   const [selected, setSelected] = useState<number[]>([]);
   const [panel, setPanel] = useState<Panel>(null);
   const [detail, setDetail] = useState<Product | null>(null);
@@ -100,6 +104,7 @@ export default function App() {
   const [lastOrder, setLastOrder] = useState<DemoOrder | null>(null);
   const catalogRef = useRef<HTMLElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const appliedPayments = useRef(new Set<string>());
   useEffect(() => {
     const route = () => {
       setAccountPage(window.location.hash.startsWith("#account"));
@@ -589,6 +594,7 @@ export default function App() {
               key={user.uid}
               user={user}
               favorites={favorites}
+              listStore={listStore}
               orderCount={orders.length}
               bagCount={count}
               onBrowse={() => browse()}
@@ -1011,6 +1017,12 @@ export default function App() {
                   ? "On your shortlist"
                   : "Add to comparison"}
               </button>
+              <ListPicker
+                key={`${user?.uid ?? "guest"}:${detail.id}`}
+                store={listStore}
+                product={detail}
+                onSignIn={() => openAccount("account-lists")}
+              />
               <dl className="spec-list">
                 {Object.entries(detail.specs).map(([k, v]) => (
                   <div key={k}>
@@ -1213,6 +1225,14 @@ export default function App() {
               <Checkout
                 key={user?.uid ?? "demo"}
                 cart={cart}
+                onPaid={(receipt) => {
+                  const key = `${user?.uid}:${receipt.paymentId}`;
+                  if (appliedPayments.current.has(key)) return;
+                  appliedPayments.current.add(key);
+                  setCart((previous) =>
+                    subtractPurchased(previous, receipt.lines),
+                  );
+                }}
                 continueShopping={() => setPanel(null)}
                 complete={(order) => {
                   setOrders((prev) => [order, ...prev]);
