@@ -361,11 +361,13 @@ export default function App() {
           <div className="header-actions">
             <button
               className="account-button"
+              aria-label={signedIn ? `My account${user?.displayName ? `: ${user.displayName}` : ""}` : demo ? "Demo account" : "Sign in"}
+              title={user?.displayName || undefined}
               onClick={() => setPanel("account")}
             >
               <UserRound size={20} />
               <span>
-                {signedIn ? "My account" : demo ? "Demo shopper" : "Sign in"}
+                {signedIn ? user?.displayName || "My account" : demo ? "Demo shopper" : "Sign in"}
               </span>
             </button>
             <button

@@ -3,6 +3,7 @@ export type SessionUser = {
   uid: string;
   email: string | null;
   emailVerified: boolean;
+  displayName: string | null;
 };
 const env = import.meta.env;
 export const authConfigured = Boolean(
@@ -49,7 +50,7 @@ export async function getCloud() {
 }
 export function sessionUser(user: User | null): SessionUser | null {
   return user
-    ? { uid: user.uid, email: user.email, emailVerified: user.emailVerified }
+    ? { uid: user.uid, email: user.email, emailVerified: user.emailVerified, displayName: user.displayName?.trim() || null }
     : null;
 }
 export async function subscribeAuth(
