@@ -50,3 +50,11 @@ be published before list use. Live UI/persistence/payment testing remains after 
 Initial emulator launch lacked network permission; after the permission grant the cached
 CLI ran all seven tests successfully against demo-aisle, without touching production data.
 
+
+## Sign-in landing correction
+
+Successful sign-in from the account modal closes the modal, resets catalog filters
+and navigates to the top of the home page instead of opening the account page.
+Explicit account navigation and refreshing an already-open account page remain
+separate. Production build passes; verify Google/email sign-in after publication.
+

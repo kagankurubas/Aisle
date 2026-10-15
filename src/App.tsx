@@ -115,7 +115,19 @@ export default function App() {
     return () => window.removeEventListener("hashchange", route);
   }, []);
   useEffect(() => {
-    if (user && panel === "account") openAccount();
+    if (user && panel === "account") {
+      close();
+      setAccountPage(false);
+      setCategory("All");
+      setQuery("");
+      setSavedOnly(false);
+      setMax(200000);
+      setSort("featured");
+      setFilters(false);
+      setDemo(false);
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    }
     if (authReady && !user && accountPage) leaveAccount();
   }, [user?.uid, panel, authReady, accountPage]);
   useEffect(() => {
