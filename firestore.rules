@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function verifiedOwner(uid) {
+      return request.auth != null && request.auth.uid == uid && request.auth.token.email_verified == true;
+    }
+    function quantity(cart, id, stock) {
+      return !(id in cart) || (cart[id] is int && cart[id] >= 1 && cart[id] <= stock);
+    }
+    function validState(data) {
+      return data.keys().hasAll(['cart', 'favorites', 'updatedAt'])
+        && data.keys().hasOnly(['cart', 'favorites', 'updatedAt'])
+        && data.updatedAt == request.time
+        && data.favorites is list && data.favorites.size() <= 12
+        && data.favorites.hasOnly([99,100,101,103,104,105,107,108,78,79,80,82])
+        && data.cart is map
+        && data.cart.keys().hasOnly(['99','100','101','103','104','105','107','108','78','79','80','82'])
+        && quantity(data.cart,'99',20) && quantity(data.cart,'100',24)
+        && quantity(data.cart,'101',12) && quantity(data.cart,'103',15)
+        && quantity(data.cart,'104',35) && quantity(data.cart,'105',16)
+        && quantity(data.cart,'107',18) && quantity(data.cart,'108',22)
+        && quantity(data.cart,'78',8) && quantity(data.cart,'79',6)
+        && quantity(data.cart,'80',7) && quantity(data.cart,'82',10);
+    }
+    match /users/{uid}/shopping/state {
+      allow get: if verifiedOwner(uid);
+      allow list: if false;
+      allow create, update: if verifiedOwner(uid) && validState(request.resource.data);
+      allow delete: if verifiedOwner(uid);
+    }
+    // A client cannot manufacture a paid order, payment status or admin role.
+    // Trusted order processing is deliberately not enabled in the demo.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

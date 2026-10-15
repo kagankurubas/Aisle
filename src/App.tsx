@@ -40,7 +40,9 @@ import {
   type DemoOrder,
 } from "./shop";
 import Modal from "./Modal";
-import { authConfigured, getAuth } from "./auth";
+import { authAvailable, subscribeAuth, type SessionUser } from "./auth";
+import useShoppingData from "./useShoppingData";
+const Account = lazy(() => import("./Account"));
 const Compare = lazy(() => import("./Compare"));
 const Checkout = lazy(() => import("./Checkout"));
 type Panel =
@@ -52,13 +54,6 @@ type Panel =
   | "guide"
   | "success"
   | null;
-function read<T>(key: string, fallback: T): T {
-  try {
-    return JSON.parse(localStorage.getItem(key) ?? "null") ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
 function Stars({ p }: { p: Product }) {
   return (
     <span className="rating">
@@ -70,28 +65,20 @@ function Stars({ p }: { p: Product }) {
   );
 }
 export default function App() {
-  const [cart, setCart] = useState<CartLine[]>(() =>
-    normalizeCart(read("aisle.demo.bag", [])),
-  );
-  const [favorites, setFavorites] = useState<number[]>(() => {
-    const v = read<unknown>("aisle.demo.saved", []);
-    return Array.isArray(v)
-      ? v.filter((n) => typeof n === "number" && productById(n))
-      : [];
-  });
-  const [orders, setOrders] = useState<DemoOrder[]>(() => {
-    const v = read<unknown>("aisle.demo.orders", []);
-    return Array.isArray(v)
-      ? v.filter(
-          (o) =>
-            o &&
-            typeof o === "object" &&
-            typeof o.id === "string" &&
-            Array.isArray(o.lines) &&
-            Number.isFinite(o.total),
-        )
-      : [];
-  });
+  const [user, setUser] = useState<SessionUser | null>(null);
+  const [authReady, setAuthReady] = useState(!authAvailable);
+  const {
+    cart,
+    setCart,
+    favorites,
+    setFavorites,
+    orders,
+    setOrders,
+    ready: shoppingReady,
+    syncStatus,
+    retry: retrySync,
+  } = useShoppingData(user, authReady);
+  const signedIn = Boolean(user);
   const [selected, setSelected] = useState<number[]>([]);
   const [panel, setPanel] = useState<Panel>(null);
   const [detail, setDetail] = useState<Product | null>(null);
@@ -103,8 +90,6 @@ export default function App() {
   const [filters, setFilters] = useState(false);
   const [toast, setToast] = useState("");
   const [demo, setDemo] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
-  const [loginBusy, setLoginBusy] = useState(false);
   const [authError, setAuthError] = useState("");
   const [guideQuery, setGuideQuery] = useState("");
   const [guideResult, setGuideResult] = useState<Product[] | null>(null);
@@ -112,37 +97,30 @@ export default function App() {
   const catalogRef = useRef<HTMLElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    try {
-      localStorage.setItem("aisle.demo.bag", JSON.stringify(cart));
-    } catch {}
-  }, [cart]);
-  useEffect(() => {
-    try {
-      localStorage.setItem("aisle.demo.saved", JSON.stringify(favorites));
-    } catch {}
-  }, [favorites]);
-  useEffect(() => {
-    try {
-      localStorage.setItem("aisle.demo.orders", JSON.stringify(orders));
-    } catch {}
-  }, [orders]);
-  useEffect(() => {
-    let dispose = () => {};
-    getAuth()
-      .then((client) => {
-        if (!client) return;
-        client.auth.getSession().then(({ data, error }) => {
-          if (error)
-            setAuthError("Sign-in could not be completed. Please try again.");
-          setSignedIn(!!data.session);
-        });
-        const { data } = client.auth.onAuthStateChange((_event, session) =>
-          setSignedIn(!!session),
-        );
-        dispose = () => data.subscription.unsubscribe();
+    let cancelled = false;
+    let unsubscribe = () => {};
+    subscribeAuth((next) => {
+      if (!cancelled) {
+        setUser(next);
+        setAuthReady(true);
+      }
+    })
+      .then((dispose) => {
+        if (cancelled) dispose();
+        else unsubscribe = dispose;
       })
-      .catch(() => setAuthError("Sign-in is temporarily unavailable."));
-    return () => dispose();
+      .catch(() => {
+        if (!cancelled) {
+          setAuthError(
+            "Account connection is unavailable. You can still explore the demo.",
+          );
+          setAuthReady(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, []);
   useEffect(
     () => () => {
@@ -174,6 +152,14 @@ export default function App() {
     toastTimer.current = setTimeout(() => setToast(""), 3500);
   }
   function add(p: Product) {
+    if (!shoppingReady) {
+      notify(
+        user && !user.emailVerified
+          ? "Verify your email before saving your finds."
+          : "Your account is not ready. Check the account notice and retry.",
+      );
+      return;
+    }
     const current = cart.find((l) => l.id === p.id)?.quantity ?? 0;
     if (current >= p.stock) {
       notify("You have reached the available stock for this item.");
@@ -183,6 +169,14 @@ export default function App() {
     notify(`${p.name} is in your bag.`);
   }
   function save(p: Product) {
+    if (!shoppingReady) {
+      notify(
+        user && !user.emailVerified
+          ? "Verify your email before saving your finds."
+          : "Your account is not ready. Check the account notice and retry.",
+      );
+      return;
+    }
     setFavorites((prev) =>
       prev.includes(p.id) ? prev.filter((id) => id !== p.id) : [...prev, p.id],
     );
@@ -218,24 +212,6 @@ export default function App() {
   function close() {
     setPanel(null);
     setDetail(null);
-  }
-  async function google() {
-    setLoginBusy(true);
-    setAuthError("");
-    try {
-      const client = await getAuth();
-      if (!client) throw new Error();
-      const { error } = await client.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: new URL(import.meta.env.BASE_URL, window.location.origin).href },
-      });
-      if (error) throw error;
-    } catch {
-      setAuthError(
-        "Google sign-in is unavailable. You can still explore the demo.",
-      );
-      setLoginBusy(false);
-    }
   }
   function findWithGuide(text: string) {
     setGuideQuery(text);
@@ -441,6 +417,30 @@ export default function App() {
           </span>
         </div>
       </header>
+      {(authError ||
+        (user && syncStatus !== "saved" && syncStatus !== "local")) && (
+        <div className="account-sync-banner" role="status">
+          <span>
+            {authError ||
+              (syncStatus === "verify"
+                ? "Verify your email to save your bag and favorites."
+                : syncStatus === "error"
+                  ? "Your account could not sync. Your changes have not been saved."
+                  : syncStatus === "saving"
+                    ? "Saving your bag and favorites…"
+                    : "Loading your bag and favorites…")}
+          </span>
+          {syncStatus === "error" ? (
+            <button className="text-button" onClick={retrySync}>
+              Retry
+            </button>
+          ) : syncStatus === "verify" ? (
+            <button className="text-button" onClick={() => setPanel("account")}>
+              Open account
+            </button>
+          ) : null}
+        </div>
+      )}
       <main>
         {browsing && (
           <section className="hero" aria-label="Welcome to Aisle">
@@ -1052,103 +1052,27 @@ export default function App() {
               </div>
             )}
             {panel === "account" && (
-              <div className="account-content">
-                <p className="muted">
-                  A small space for your saved finds and orders.
-                </p>
-                {signedIn ? (
-                  <>
-                    <p className="stock">
-                      <Check size={17} /> Connected securely with Google
-                    </p>
-                    <p>
-                      Your current bag and saved items are a browser-local demo.
-                      Account cloud sync is not enabled.
-                    </p>
-                    <button
-                      className="secondary"
-                      onClick={async () => {
-                        await (await getAuth())?.auth.signOut();
-                        setSignedIn(false);
-                        notify("You have signed out.");
-                      }}
-                    >
-                      <LogOut size={17} /> Sign out
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      className="google-button"
-                      disabled={!authConfigured || loginBusy}
-                      onClick={google}
-                    >
-                      <span className="google-g">G</span>
-                      {loginBusy ? "Connecting…" : "Continue with Google"}
-                      <ArrowUpRight size={16} />
-                    </button>
-                    {!authConfigured && (
-                      <p className="integration-note">
-                        Google sign-in needs the store’s Supabase and Google
-                        OAuth configuration. It is not enabled in this preview.
-                      </p>
-                    )}
-                    {authError && (
-                      <p className="error" role="alert">
-                        {authError}
-                      </p>
-                    )}
-                    <div className="or-divider">
-                      <span>or take a look around</span>
-                    </div>
-                    <button
-                      className="primary full"
-                      onClick={() => {
-                        setDemo(true);
-                        close();
-                        notify(
-                          "Welcome, demo shopper. No personal information needed.",
-                        );
-                      }}
-                    >
-                      <UserRound size={18} />{" "}
-                      {demo ? "Continue as demo shopper" : "Try the demo"}{" "}
-                      <ArrowRight size={17} />
-                    </button>
-                    <p className="small muted centered">
-                      No account. No personal details. Just a little exploring.
-                    </p>
-                  </>
-                )}
-                <div className="account-links">
-                  <button onClick={() => setPanel("orders")}>
-                    <Package size={20} />
-                    <span>
-                      Your demo orders
-                      <small>Confirmation, details, and cancellation</small>
-                    </span>
-                    <ArrowRight size={18} />
-                  </button>
-                  <button
-                    onClick={() => {
-                      close();
-                      setSavedOnly(true);
-                      setCategory("All");
-                      setQuery("");
-                      catalogRef.current?.scrollIntoView({
-                        behavior: "smooth",
-                      });
-                    }}
-                  >
-                    <Heart size={20} />
-                    <span>
-                      Your saved finds
-                      <small>{favorites.length} things to come back to</small>
-                    </span>
-                    <ArrowRight size={18} />
-                  </button>
-                </div>
-              </div>
+              <Account
+                user={user}
+                onUser={setUser}
+                syncStatus={syncStatus}
+                savedCount={favorites.length}
+                onDemo={() => {
+                  setDemo(true);
+                  close();
+                  notify(
+                    "Welcome, demo shopper. No personal information needed.",
+                  );
+                }}
+                onOrders={() => setPanel("orders")}
+                onSaved={() => {
+                  close();
+                  setSavedOnly(true);
+                  setCategory("All");
+                  setQuery("");
+                  catalogRef.current?.scrollIntoView({ behavior: "smooth" });
+                }}
+              />
             )}
             {panel === "orders" && (
               <div className="orders-content">

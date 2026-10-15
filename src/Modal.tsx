@@ -38,8 +38,18 @@ export default function Modal({
         <div>
           <span className="eyebrow">AISLE / A LITTLE CLOSER</span>
           <h2 id="modal-title">{title}</h2>
-          <div className="modal-notification" role="status" aria-live="polite" aria-atomic="true">
-            {notification && <><Check size={15} /><span>{notification}</span></>}
+          <div
+            className="modal-notification"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {notification && (
+              <>
+                <Check size={15} />
+                <span>{notification}</span>
+              </>
+            )}
           </div>
         </div>
         <button

@@ -43,6 +43,17 @@ if ($LASTEXITCODE -ne 0) {
   gh api --method PUT "repos/$aisleRepo/pages" -f build_type=workflow --silent
   if ($LASTEXITCODE -ne 0) { throw 'Cannot select GitHub Actions as the Pages source.' }
 }
+if (Test-Path -LiteralPath '.env.local') {
+  $aisleAllowedConfig = @('VITE_FIREBASE_API_KEY','VITE_FIREBASE_AUTH_DOMAIN','VITE_FIREBASE_PROJECT_ID','VITE_FIREBASE_STORAGE_BUCKET','VITE_FIREBASE_MESSAGING_SENDER_ID','VITE_FIREBASE_APP_ID')
+  foreach ($aisleLine in (Get-Content -LiteralPath '.env.local')) {
+    if ($aisleLine -match '^([A-Z_]+)=(.+)$' -and $aisleAllowedConfig -contains $Matches[1]) {
+      $aisleVariableName = $Matches[1]
+      $aisleVariableValue = $Matches[2].Trim().Trim('"').Trim("'")
+      gh variable set $aisleVariableName --repo $aisleRepo --body $aisleVariableValue
+      if ($LASTEXITCODE -ne 0) { throw "Cannot configure public browser variable $aisleVariableName" }
+    }
+  }
+}
 gh workflow run deploy.yml --repo $aisleRepo --ref main
 if ($LASTEXITCODE -ne 0) { throw 'Source pushed. Workflow may not be indexed yet; rerun this script shortly or use the Actions tab.' }
 Write-Output "Repository: https://github.com/$aisleRepo"

@@ -6,3 +6,4 @@ dist/
 .next/
 .capture-state/
 *.log
+.firebase/
