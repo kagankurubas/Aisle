@@ -49,6 +49,7 @@ const Account = lazy(() => import("./Account"));
 const AccountPage = lazy(() => import("./AccountPage"));
 const Compare = lazy(() => import("./Compare"));
 const Checkout = lazy(() => import("./Checkout"));
+const DemoTools = lazy(() => import("./DemoTools"));
 type Panel =
   | "bag"
   | "compare"
@@ -57,6 +58,7 @@ type Panel =
   | "checkout"
   | "guide"
   | "success"
+  | "demo-tools"
   | null;
 function Stars({ p }: { p: Product }) {
   return (
@@ -125,8 +127,14 @@ export default function App() {
       setSort("featured");
       setFilters(false);
       setDemo(false);
-      window.history.replaceState(null, "", window.location.pathname + window.location.search);
-      requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "instant" }));
+      window.history.replaceState(
+        null,
+        "",
+        window.location.pathname + window.location.search,
+      );
+      requestAnimationFrame(() =>
+        window.scrollTo({ top: 0, behavior: "instant" }),
+      );
     }
     if (authReady && !user && accountPage) leaveAccount();
   }, [user?.uid, panel, authReady, accountPage]);
@@ -924,6 +932,7 @@ export default function App() {
             About this demo
           </button>
           <span>© {new Date().getFullYear()} Aisle</span>
+          <button onClick={() => setPanel("demo-tools")}>Demo tools</button>
         </div>
       </footer>
       {selected.length > 0 && !panel && !detail && (
@@ -1055,25 +1064,39 @@ export default function App() {
       {panel && (
         <Modal
           title={
-            panel === "bag"
-              ? "Your bag."
-              : panel === "compare"
-                ? "The comparison workbench."
-                : panel === "account"
-                  ? "Make yourself at home."
-                  : panel === "orders"
-                    ? "Your orders."
-                    : panel === "guide"
-                      ? "Meet Pip."
-                      : panel === "success"
-                        ? "A good find, indeed."
-                        : "A thoughtful checkout."
+            panel === "demo-tools"
+              ? "The little test lab."
+              : panel === "bag"
+                ? "Your bag."
+                : panel === "compare"
+                  ? "The comparison workbench."
+                  : panel === "account"
+                    ? "Make yourself at home."
+                    : panel === "orders"
+                      ? "Your orders."
+                      : panel === "guide"
+                        ? "Meet Pip."
+                        : panel === "success"
+                          ? "A good find, indeed."
+                          : "A thoughtful checkout."
           }
           onClose={close}
           notification={toast}
-          wide={["compare", "checkout"].includes(panel)}
+          wide={["compare", "checkout", "demo-tools"].includes(panel)}
         >
           <Suspense fallback={<p className="loading">Making a little room…</p>}>
+            {panel === "demo-tools" && (
+              <DemoTools
+                key={user?.uid ?? "demo"}
+                cart={cart}
+                onOrders={() => setPanel("orders")}
+                onComplete={(order) => {
+                  setOrders((prev) => [order, ...prev]);
+                  setLastOrder(order);
+                  setPanel("success");
+                }}
+              />
+            )}
             {panel === "bag" && (
               <div className="bag-content">
                 {cart.length ? (
@@ -1247,12 +1270,6 @@ export default function App() {
                   );
                 }}
                 continueShopping={() => setPanel(null)}
-                complete={(order) => {
-                  setOrders((prev) => [order, ...prev]);
-                  setLastOrder(order);
-                  setCart([]);
-                  setPanel("success");
-                }}
               />
             )}
             {panel === "success" && lastOrder && (

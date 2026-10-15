@@ -58,3 +58,16 @@ and navigates to the top of the home page instead of opening the account page.
 Explicit account navigation and refreshing an already-open account page remain
 separate. Production build passes; verify Google/email sign-in after publication.
 
+
+## Checkout and demo-tools separation
+
+Normal checkout now has one USD provider flow; no TRY selector or offline order button.
+The footer Demo tools dialog contains a separate fixed 1 TL provider diagnostic and
+browser-only offline simulations. Offline orders use a copy of the bag without clearing
+it. Provider result authority remains server-side; receipt/currency checks are preserved.
+Local browser UI checks covered delivery to review, clean checkout layout, separate
+diagnostic/offline tools, declined simulation and successful retry. No live merchant
+request or real account was used in these UI checks. The prior 15 tests pass; production
+build passes. New live sandbox payment and mobile visual checks remain after publication.
+Preview screenshot: outputs/aisle-checkout-clean.png in the chat output directory.
+

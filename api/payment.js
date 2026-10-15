@@ -11,7 +11,7 @@ export default async function handler(req,res) {
   if (action === 'callback' && ['POST','GET'].includes(req.method)) {
     res.setHeader('Content-Type','text/html; charset=utf-8');
     res.setHeader('Content-Security-Policy',"default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'");
-    return res.status(200).send('<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aisle sandbox checkout</title><body style="font:18px system-ui;padding:48px;line-height:1.7;background:#f8f7f1;color:#234b3b"><h1>Return to Aisle.</h1><p>The test payment screen has finished. Close this tab and choose <strong>Verify payment</strong> in Aisle to check the result securely.</p><p>No real charge or shipment.</p></body></html>');
+    return res.status(200).send('<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aisle sandbox checkout</title><body style="font:18px system-ui;padding:48px;line-height:1.7;background:#f8f7f1;color:#234b3b"><h1>Return to Aisle.</h1><p>The test payment screen has finished. Close this tab and choose <strong>Confirm test payment</strong> in Aisle to check the result securely.</p><p>No real charge or shipment.</p></body></html>');
   }
   const origin = req.headers.origin;
   if (!origins.has(origin)) return res.status(403).json({error:'This origin is not allowed.'});
@@ -45,3 +45,4 @@ export default async function handler(req,res) {
     return res.status(error instanceof PaymentError ? error.status : 502).json({error:error instanceof PaymentError ? error.message : 'Sandbox connection failed. Please try again.'});
   }
 }
+

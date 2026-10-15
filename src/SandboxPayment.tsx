@@ -22,14 +22,17 @@ export default function SandboxPayment({
   cart,
   express,
   onVerified,
+  mode = "bag",
+  onSessionChange,
 }: {
   cart: CartLine[];
   express: boolean;
   onVerified: (receipt: SandboxReceipt) => void;
+  mode?: "bag" | "error-test";
+  onSessionChange?: (active: boolean) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [mode, setMode] = useState<"bag" | "error-test">("bag");
   const [session, setSession] = useState<{
     ticket: string;
     url: string;
@@ -88,6 +91,7 @@ export default function SandboxPayment({
     setBusy(true);
     setError("");
     setResult(null);
+    onSessionChange?.(true);
     // Open from the click gesture; asynchronous popup creation is often blocked.
     const popup = window.open("about:blank", "aisle-sandbox-payment");
     if (popup) {
@@ -111,12 +115,13 @@ export default function SandboxPayment({
       )
         throw new Error("Unexpected checkout address.");
       setSession({ ticket: data.ticket, url: url.href, uid, mode });
-      if (popup) popup.location.replace(url.href);
+      if (popup && !popup.closed) popup.location.replace(url.href);
     } catch (e) {
       popup?.close();
       setError(
         e instanceof Error ? e.message : "Could not open sandbox checkout.",
       );
+      onSessionChange?.(false);
     } finally {
       request.current = false;
       setBusy(false);
@@ -149,7 +154,10 @@ export default function SandboxPayment({
               "Unexpected payment mode. Please start a new test.",
             );
           const paidLines = normalizeCart(data.lines);
-          if (!paidLines.length) throw new Error("This checkout session predates the bag update. Start a new test payment.");
+          if (!paidLines.length)
+            throw new Error(
+              "This checkout session predates the bag update. Start a new test payment.",
+            );
           onVerified({
             paymentId: data.paymentId,
             total: data.total,
@@ -164,89 +172,108 @@ export default function SandboxPayment({
       setBusy(false);
     }
   }
+  const diagnostic = mode === "error-test";
   return (
-    <section className="sandbox-payment" aria-label="iyzico sandbox payment">
-      <h4>
-        <ShieldCheck size={18} /> iyzico Sandbox
-      </h4>
+    <section
+      className={`sandbox-payment ${diagnostic ? "diagnostic-payment" : "checkout-payment"}`}
+      aria-label={
+        diagnostic ? "Separate payment diagnostic" : "Secure test payment"
+      }
+    >
+      <div className="payment-section-title">
+        <ShieldCheck size={21} />
+        <div>
+          <h4>
+            {diagnostic ? "A separate 1 TL test" : "A safe way to finish."}
+          </h4>
+          <span>
+            {diagnostic
+              ? "IYZICO SANDBOX · TRY 1.00"
+              : "SECURED BY IYZICO · TEST MODE"}
+          </span>
+        </div>
+      </div>
       <p className="muted">
-        Test the payment provider in a separate tab. Use test cards only. No
-        real charge or shipment. Fictional customer details are sent; your
-        delivery form is not sent.
-      </p>
-      <p className="small muted">
-        Verified sign-in required. USD demo prices. A verified bag payment
-        removes purchased quantities and shows a test receipt. No fulfilment
-        order is created.
+        {diagnostic
+          ? "A fixed TRY 1.00 sandbox diagnostic. It does not pay for or change your USD bag."
+          : "Complete your test payment in iyzico’s secure tab, then return here to confirm. No real money will be charged."}
       </p>
       {!session ? (
         <>
-          <label>
-            Test type
-            <select
-              disabled={busy}
-              value={mode}
-              onChange={(e) => setMode(e.target.value as typeof mode)}
-            >
-              <option value="bag">Pay for this bag · USD</option>
-              <option value="error-test">Separate error test · TRY 1.00</option>
-            </select>
-          </label>
-          {mode === "error-test" && (
-            <p className="demo-notice">
-              Separate 1 TL sandbox diagnostic. Not a currency conversion or
-              payment for your bag. Use card 4111 1111 1111 1129, expiry 12/30,
-              CVC 123 to test insufficient funds.
-            </p>
-          )}
           <button
             type="button"
-            className="primary"
-            disabled={busy || (mode === "bag" && !cart.length)}
+            className="primary full"
+            disabled={busy || (!diagnostic && !cart.length)}
             onClick={start}
           >
             {busy
-              ? "Opening sandbox…"
-              : mode === "error-test"
-                ? "Open 1 TL error test"
-                : "Pay with iyzico test cards"}{" "}
-            <ExternalLink size={16} />
+              ? "Opening secure payment…"
+              : diagnostic
+                ? "Open 1 TL diagnostic"
+                : "Continue to secure payment"}
+            <ExternalLink size={17} />
           </button>
+          <details className="payment-help">
+            <summary>
+              {diagnostic
+                ? "Cards for this diagnostic"
+                : "Test card for this demo"}
+            </summary>
+            <p>
+              {diagnostic
+                ? "Insufficient funds: 4111 1111 1111 1129. Retry successfully: 5528 7900 0000 0008."
+                : "USD test card: 5400 0100 0000 0004."}
+              <br />
+              Name: Demo Shopper · Expiry: 12/30 · CVC: 123. Test cards only.
+            </p>
+          </details>
         </>
       ) : (
         <>
           {result?.status !== "success" && (
-            <>
-              <p>
-                <a href={session.url} target="_blank" rel="noopener noreferrer">
-                  Open the test payment screen ↗
-                </a>
+            <div className="payment-return">
+              <span className="eyebrow">YOUR PAYMENT TAB IS READY</span>
+              <h4>Finish there. Confirm here.</h4>
+              <p className="muted">
+                After completing the iyzico screen, come back to this window.
+                Keep this checkout open until your payment is confirmed.
               </p>
+              <a
+                className="payment-reopen"
+                href={session.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Reopen secure payment <ExternalLink size={15} />
+              </a>
               <button
                 type="button"
-                className="primary"
+                className="primary full"
                 disabled={busy}
                 onClick={check}
               >
-                {busy ? "Verifying with iyzico…" : "Verify payment"}
+                {busy ? "Confirming with iyzico…" : "Confirm test payment"}
+                <ShieldCheck size={17} />
               </button>
-            </>
-          )}
-          {session.mode === "error-test" && (
-            <p className="demo-notice">
-              Checking the separate TRY 1.00 test. Your USD bag is unchanged.
-            </p>
+            </div>
           )}
           {result && (
-            <div role="status" className="sandbox-receipt">
+            <div
+              role="status"
+              className={`sandbox-receipt payment-result-${result.status}`}
+            >
               <strong>
                 {result.status === "success"
-                  ? "Sandbox payment verified"
+                  ? "Diagnostic complete"
                   : result.status === "declined"
-                    ? "Test payment declined"
-                    : "Payment not yet confirmed"}
+                    ? "Payment declined. Let’s try again."
+                    : "Not confirmed yet."}
               </strong>
-              <p>{result.message}</p>
+              <p>
+                {result.status === "pending"
+                  ? "iyzico has not confirmed a completed payment. If its screen shows an error, try another test card there, then confirm again. Your bag has not changed."
+                  : result.message}
+              </p>
               {result.paymentId && (
                 <p>
                   Provider reference: {result.paymentId}
@@ -259,25 +286,32 @@ export default function SandboxPayment({
               )}
             </div>
           )}
-          {(result?.status !== "success" || session.mode === "error-test") && (
+          {(result?.status !== "success" || diagnostic) && (
             <button
               type="button"
-              className="text-button"
+              className="text-button payment-restart"
               disabled={busy}
               onClick={() => {
                 setSession(null);
                 setResult(null);
                 setError("");
+                onSessionChange?.(false);
               }}
             >
-              Start a new test
+              Start a fresh payment session
             </button>
           )}
         </>
       )}
       {error && (
-        <p role="alert" className="error">
+        <p role="alert" className="error payment-error">
           {error}
+        </p>
+      )}
+      {!diagnostic && (
+        <p className="small muted payment-privacy">
+          Test checkout only. No real purchase or shipment. Card details stay on
+          iyzico’s payment page.
         </p>
       )}
     </section>

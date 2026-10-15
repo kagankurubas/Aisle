@@ -1,51 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, LockKeyhole, Truck } from "lucide-react";
 import { imageFor, money, productById } from "./catalog";
-import { totals, type CartLine, type DemoOrder } from "./shop";
+import { totals, type CartLine } from "./shop";
 import SandboxPayment, { type SandboxReceipt } from "./SandboxPayment";
 export default function Checkout({
   cart,
-  complete,
   continueShopping,
   onPaid,
 }: {
   cart: CartLine[];
-  complete: (order: DemoOrder) => void;
   continueShopping: () => void;
   onPaid: (receipt: SandboxReceipt) => void;
 }) {
   const [step, setStep] = useState(1);
   const [express, setExpress] = useState(false);
-  const [decline, setDecline] = useState(false);
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [paymentActive, setPaymentActive] = useState(false);
   const [receipt, setReceipt] = useState<SandboxReceipt | null>(null);
+  const checkoutRoot = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    checkoutRoot.current?.closest("dialog")?.scrollTo({ top: 0 });
+  }, [step]);
   const completionHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     if (receipt) completionHeading.current?.focus();
   }, [receipt]);
   const sum = totals(cart, express);
-  async function place() {
-    if (busy) return;
-    setBusy(true);
-    setError("");
-    await new Promise((r) => setTimeout(r, 650));
-    if (decline) {
-      setError(
-        "Demo payment declined. Choose the successful scenario to try again. Your bag has been kept.",
-      );
-      setBusy(false);
-      return;
-    }
-    complete({
-      id: `DEMO-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
-      date: new Date().toISOString(),
-      lines: cart.map((l) => ({ ...l })),
-      total: sum.total,
-      shipping: sum.shipping,
-      status: "Confirmed",
-    });
-  }
   if (receipt)
     return (
       <div className="checkout">
@@ -92,12 +71,11 @@ export default function Checkout({
       </div>
     );
   return (
-    <div className="checkout">
+    <div className="checkout" ref={checkoutRoot}>
       <div className="demo-notice">
         <LockKeyhole size={17} />
         <span>
-          <strong>Test checkout.</strong> No charge, no card details, no real
-          order.
+          <strong>You’re in test mode.</strong> No real charge or shipment.
         </span>
       </div>
       <ol className="steps">
@@ -199,63 +177,27 @@ export default function Checkout({
             </form>
           ) : (
             <div>
-              <button className="text-button" onClick={() => setStep(1)}>
+              <button
+                className="text-button"
+                disabled={paymentActive}
+                onClick={() => setStep(1)}
+              >
                 <ArrowLeft size={15} /> Edit delivery
               </button>
               <h3>One last look.</h3>
               <p className="muted">
-                Choose a provider sandbox test or an offline demo order below.
-                Both use test data and never create a real charge or shipment.
+                A few good finds, ready when you are. Check your total, then
+                continue to secure test payment.
               </p>
               <SandboxPayment
                 cart={cart}
                 express={express}
+                onSessionChange={setPaymentActive}
                 onVerified={(value) => {
                   onPaid(value);
                   setReceipt(value);
                 }}
               />
-              <hr />
-              <h4>Or explore the offline demo</h4>
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={!decline}
-                  onChange={() => setDecline(false)}
-                />
-                <span>
-                  Successful payment
-                  <small>Explore confirmation and order history</small>
-                </span>
-              </label>
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={decline}
-                  onChange={() => setDecline(true)}
-                />
-                <span>
-                  Declined payment
-                  <small>Explore a recoverable payment error</small>
-                </span>
-              </label>
-              {error && (
-                <p role="alert" className="error">
-                  {error}
-                </p>
-              )}
-              <button
-                className="primary"
-                disabled={busy || !cart.length}
-                onClick={place}
-              >
-                {busy
-                  ? "Processing demo…"
-                  : `Place demo order · ${money(sum.total)}`}
-                <ArrowRight size={17} />
-              </button>
             </div>
           )}
         </div>

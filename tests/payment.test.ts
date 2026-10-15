@@ -67,7 +67,7 @@ test('API refuses foreign origins and unsafe methods; callback never claims paym
   await handler({url:'/api/payment?action=start',method:'POST',headers:{origin:'https://evil.example'}},res);assert.equal(res.code,403);
   res=response();await handler({url:'/api/payment?action=start',method:'GET',headers:{origin:'https://kagankurubas.github.io'}},res);assert.equal(res.code,405);
   res=response();await handler({url:'/api/payment?action=status',method:'OPTIONS',headers:{origin:'https://kagankurubas.github.io'}},res);assert.equal(res.code,204);assert.equal(res.headers['Access-Control-Allow-Origin'],'https://kagankurubas.github.io');
-  res=response();await handler({url:'/api/payment?action=callback',method:'POST',headers:{},body:{paymentStatus:'SUCCESS'}},res);assert.equal(res.code,200);assert.ok(!res.body.includes('payment verified'));assert.ok(res.body.includes('Verify payment'));
+  res=response();await handler({url:'/api/payment?action=callback',method:'POST',headers:{},body:{paymentStatus:'SUCCESS'}},res);assert.equal(res.code,200);assert.ok(!res.body.includes('payment verified'));assert.ok(res.body.includes('Confirm test payment'));
 });
 test('TRY error diagnostic is a fixed separate amount and cannot confirm a USD bag',async()=>{
   const config={apiKey:'sandbox-fixture',secret,stateKey:key};
@@ -103,3 +103,4 @@ test('paid quantities are removed without clearing later additions or unrelated 
   assert.deepEqual(subtractPurchased([{id:101,quantity:1}],[{id:100,quantity:2}]),[{id:101,quantity:1}]);
   assert.deepEqual(subtractPurchased([{id:100,quantity:1}],[{id:100,quantity:2}]),[]);
 });
+

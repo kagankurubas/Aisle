@@ -80,3 +80,8 @@ Bu plan kaydedildi. Otomatik alarm veya sabah çalışması planlanmadı; kullan
 
 Kullanıcı GitHub Firebase web anahtarı uyarısını doğru açıklamayla Won't fix olarak kapattı. İlk güvenlik incelemesi kapsamı ve kalan sınırlar SECURITY-AUDIT.md içinde. Güncel yayında bozuk JSON 400 yanıtı ve girişten sonra anasayfada kalma doğrulandı. Sıradaki ürün işi: normal checkout'tan 1 TL tanılama ve çevrimdışı demo araçlarını ayırıp bekleme/reddetme/yeniden deneme dilini netleştirmek. Ardından gerçek AI Pip, hesap sayfası tasarımı, son güvenlik kontrolü ve geniş bug taraması.
 
+
+## Ödeme sadeleştirmesi hazır
+
+Normal USD checkout tek akışa indirildi; tanılama ve çevrimdışı siparişler footer Demo tools alanına taşındı. Test kartı yardımı katlanabilir, onay/durum/yeniden deneme dili net. Yerel görünüm ve çevrimdışı ret/yeniden deneme doğrulandı. Kod yayınlandıktan sonra normal USD ödeme ve demo araçları ayrımı canlıda kontrol edilecek; ardından gerçek AI Pip adımına geçilecek.
+
