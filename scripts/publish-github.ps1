@@ -39,7 +39,16 @@ if ($aisleRemotes -contains 'origin') {
   git push -u origin main
   if ($LASTEXITCODE -ne 0) { throw 'Push failed. No force push was attempted; ask Codex to inspect the remote history.' }
 }
-$aislePagesMode = gh api "repos/$aisleRepo/pages" --jq .build_type 2>$null
+# Windows PowerShell 5 treats redirected native stderr as terminating with Stop.
+# A 404 is expected before Pages is enabled; inspect the native exit code.
+$aislePreviousPreference = $ErrorActionPreference
+try {
+  $ErrorActionPreference = 'Continue'
+  $aislePagesMode = gh api "repos/$aisleRepo/pages" --jq .build_type 2>$null
+  $aislePagesExitCode = $LASTEXITCODE
+} finally {
+  $ErrorActionPreference = $aislePreviousPreference
+}
 if ($LASTEXITCODE -ne 0) {
   gh api --method POST "repos/$aisleRepo/pages" -f build_type=workflow --silent
   if ($LASTEXITCODE -ne 0) { throw 'Enable GitHub Actions under repository Settings > Pages, then rerun this script.' }
@@ -63,5 +72,6 @@ if ($LASTEXITCODE -ne 0) { throw 'Source pushed. Workflow may not be indexed yet
 Write-Output "Repository: https://github.com/$aisleRepo"
 Write-Output "Expected site after successful deployment: https://$aisleLogin.github.io/Aisle/"
 Write-Output "Check deployment: gh run list --repo $aisleRepo --workflow deploy.yml --limit 3"
+
 
 
