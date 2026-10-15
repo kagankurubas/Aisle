@@ -23,12 +23,26 @@
 
 ## Ürünü bitirme sırası
 
-1. Ödeme test araçlarını normal alışveriş akışından ayır: 1 TL tanılama ve çevrimdışı demo kontrolleri normal checkout'u karıştırmasın. Başarı, bekleme, reddetme ve yeniden deneme mesajlarını netleştir. Sağlayıcı hatasını doğrulamadan başarısız ödeme diye sınıflandırma.
-2. Pip'i gerçek AI yardımcısına bağla. API anahtarı yalnızca sunucuda; yalnızca mevcut katalog ürünlerini önerir, fiyat/özellik uydurmaz. Kişisel bilgi veya ödeme bilgisi modele gönderilmez. Hata/zaman aşımında mevcut katalog yardımcısı kullanılabilir.
-3. Mobil görünüm, klavye kullanımı, yüklenme/hata/boş durumları ve kullanıcıya gösterilen teknik metinleri son kez düzenle. Yeni özellik kapsamını büyütme.
-4. Aşağıdaki kapsamlı bug taramasını yap, bulunan sorunları düzelt, etkilenen akışları tekrar test et.
-5. Son sürümü yayınla. Oturum açmamış bir ziyaretçi olarak canlı bağlantıyı ve public repoyu kontrol et. Agent kayıtlarının düzenli commit edildiğini ve gizli sunucu anahtarlarının repoda bulunmadığını doğrula.
-6. Videoları hazırlayıp teslim alanlarını doldur. Kullanıcının onayı olmadan teslim formunu gönderme.
+1. Yayınlanan sürümde aşağıdaki ayrı güvenlik taramasını yap; GitHub anahtar uyarısını incele ve bulguları düzelt. İnceleme bitmeden güvenli olduğumuzu veya uyarının çözüldüğünü söyleme.
+2. Ödeme test araçlarını normal alışveriş akışından ayır: 1 TL tanılama ve çevrimdışı demo kontrolleri normal checkout'u karıştırmasın. Başarı, bekleme, reddetme ve yeniden deneme mesajlarını netleştir. Sağlayıcı hatasını doğrulamadan başarısız ödeme diye sınıflandırma.
+3. Pip'i gerçek AI yardımcısına bağla. API anahtarı yalnızca sunucuda; yalnızca mevcut katalog ürünlerini önerir, fiyat/özellik uydurmaz. Kişisel bilgi veya ödeme bilgisi modele gönderilmez. Hata/zaman aşımında mevcut katalog yardımcısı kullanılabilir.
+4. Mobil görünüm, klavye kullanımı, yüklenme/hata/boş durumları ve kullanıcıya gösterilen teknik metinleri son kez düzenle. Yeni özellik kapsamını büyütme.
+5. Yeni değişiklikleri de kapsayan son güvenlik kontrolünü yap. Özellikle yeni AI anahtarının repo, geçmiş, log ve istemci paketlerine girmediğini doğrula.
+6. Aşağıdaki kapsamlı bug taramasını yap, bulunan sorunları düzelt, etkilenen akışları tekrar test et.
+7. Son sürümü yayınla. Oturum açmamış bir ziyaretçi olarak canlı bağlantıyı ve public repoyu kontrol et. Agent kayıtlarının düzenli commit edildiğini doğrula.
+8. Videoları hazırlayıp teslim alanlarını doldur. Kullanıcının onayı olmadan teslim formunu gönderme.
+
+## Bug taramasından önce ayrı güvenlik taraması
+
+- GitHub: güncel dosyaları ve erişilebilir tüm branch/tag/commit geçmişini, `.agent-logs/`, Actions loglarını ve yayın artefaktlarını gizli anahtar/token/kişisel veri açısından tara. Secret scanning uyarılarının dosya, commit ve türlerini incele; anahtar değerlerini raporda tekrar etme.
+- Yayınlanan istemci: GitHub Pages ve Vercel JavaScript paketleri, varsa kaynak haritaları ve ağ yanıtlarında iyzico Secret/API Key, ödeme oturum anahtarı, özel Firebase yönetici anahtarı, AI anahtarı veya kullanıcı tokenı bulunmadığını kontrol et. Herkese açık Firebase web yapılandırmasını gizli sunucu anahtarlarından ayrı değerlendir.
+- Vercel: ödeme anahtarlarının yalnızca sunucu ortam değişkenlerinde olduğunu; `VITE_` önekiyle istemciye taşınmadığını, API hataları ve loglarda yazılmadığını kontrol et. Production/Preview kapsamlarını incele; gerçek canlı ödeme anahtarları ekleme.
+- Firebase: web anahtarının uygulama/API kısıtlamalarını, yetkili domainleri, Authentication ayarlarını, Firestore kurallarını ve iki hesap arasında sepet/favori/liste izolasyonunu kontrol et. Firebase uyarısını sırf web anahtarı olduğu için incelemeden kapatma.
+- API güvenliği: oturum doğrulama, e-posta doğrulaması, sahiplik, fiyat/adet doğrulaması, imza/para birimi/tutar eşleşmesi, CORS, callback yetkisi ve kötüye kullanım sınırlarını gözden geçir. Eksikleri bulgu olarak kaydet.
+- Gerçek bir gizli anahtar sızıntısında önce sağlayıcıdan iptal et/yenile, sonra ortam değişkenlerini güncelle ve tekrar yayınla. Dosyadan silmek geçmişteki sızıntıyı düzeltmez. Gerekirse geçmiş temizliği planını ayrıca değerlendir; commit geçmişini kendiliğinden yeniden yazma.
+- Bulguları önem derecesi, kanıt konumu, düzeltme ve tekrar test sonucu ile kaydet. Taramayı geçmeden tamamlandı diye işaretleme. Otomatik agent kayıtlarını gelişigüzel silme veya değiştirme.
+
+Güncel sıra: son değişiklikleri yayınlama → güvenlik taraması ve düzeltmeler → kalan özellikler → son güvenlik kontrolü → geniş bug taraması → videolar ve teslim.
 
 ## Son geniş kapsamlı bug taraması
 
