@@ -81,3 +81,8 @@ Preview screenshot: outputs/aisle-checkout-clean.png in the chat output director
 ### Zero-budget provider change
 
 User requires a free exam implementation. Replaced OpenAI with fixed Gemini 3.5 Flash-Lite, server-only GEMINI_API_KEY; no paid fallback. Updated privacy disclosure for Google Free Tier product improvement. 23 tests and production build pass, including explicit provider 429/no-fallback and safety/truncation handling. Live Gemini/Redis calls remain pending user configuration of an unbilled Free Tier Google project and Free Redis.
+
+
+## Pip history and modal gesture regression
+
+25 tests pass, including chat normalization, per-account storage isolation, deletion and blocked-storage behavior; build passes. Browser checked real store guest modal drag from inside to backdrop stays open and a normal backdrop click closes. An ignored local React fixture using actual Pip/Modal components verified two-history listing and opening an older chat restores question/answer and budget. No live auth/model requests were made by the fixture. User screenshots independently confirm live AI recommendations, follow-up and impossible-budget handling. Site-wide security and comprehensive bug sweep remain pending.

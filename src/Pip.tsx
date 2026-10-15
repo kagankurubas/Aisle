@@ -2,8 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, ShoppingBag, Scale } from "lucide-react";
 import { getFirebase, type SessionUser } from "./auth";
 import { productById, imageFor, money, type Product } from "./catalog";
-type Advice = { answer: string; products: { id: number; reason: string }[] };
-type Turn = { question: string; advice: Advice };
+import {
+  readPipHistory,
+  savePipHistory,
+  type PipChat,
+  type Turn,
+} from "./pipHistory";
 export default function Pip({
   user,
   onSignIn,
@@ -20,6 +24,10 @@ export default function Pip({
   const [query, setQuery] = useState("");
   const [budget, setBudget] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
+  const [chats, setChats] = useState<PipChat[]>([]);
+  const [chatId, setChatId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyError, setHistoryError] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const pending = useRef<AbortController | null>(null);
@@ -27,7 +35,13 @@ export default function Pip({
   useEffect(() => {
     pending.current?.abort();
     pending.current = null;
-    setTurns([]);
+    const saved = user?.uid ? readPipHistory(user.uid) : [];
+    setChats(saved);
+    setChatId(saved[0]?.id ?? null);
+    setBudget(saved[0]?.budget ?? "");
+    setTurns(saved[0]?.turns ?? []);
+    setShowHistory(false);
+    setHistoryError("");
     setQuery("");
     setError("");
     setBusy(false);
@@ -97,10 +111,22 @@ export default function Pip({
         throw new Error("Pip couldn’t prepare that answer. Please try again.");
       if (auth.currentUser?.uid !== owner.uid || controller.signal.aborted)
         return;
-      setTurns((previous) => [
-        ...previous.slice(-4),
+      const nextTurns = [
+        ...turns.slice(-9),
         { question: text.trim(), advice: data },
-      ]);
+      ];
+      const id = chatId ?? crypto.randomUUID();
+      const nextChats = [
+        { id, updatedAt: Date.now(), budget, turns: nextTurns },
+        ...chats.filter((c) => c.id !== id),
+      ].slice(0, 10);
+      setTurns(nextTurns);
+      setChats(nextChats);
+      setChatId(id);
+      if (!savePipHistory(owner.uid, nextChats))
+        setHistoryError(
+          "This browser couldn’t save chat history. Keep this window open to continue.",
+        );
       setQuery("");
     } catch (e) {
       if (!controller.signal.aborted)
@@ -130,6 +156,92 @@ export default function Pip({
           <small>AI assistance · grounded in Aisle’s sample catalog</small>
         </div>
       </div>
+      {ready && (
+        <div className="pip-history-toolbar">
+          <button
+            className="secondary"
+            disabled={busy}
+            aria-expanded={showHistory}
+            aria-controls="pip-history"
+            onClick={() => setShowHistory((v) => !v)}
+          >
+            Recent chats ({chats.length})
+          </button>
+          <button
+            className="text-button"
+            disabled={busy}
+            onClick={() => {
+              setTurns([]);
+              setChatId(null);
+              setQuery("");
+              setError("");
+              setShowHistory(false);
+            }}
+          >
+            New chat
+          </button>
+        </div>
+      )}
+      {ready && showHistory && (
+        <section id="pip-history" className="pip-history">
+          <h3>Your recent chats</h3>
+          <p className="small muted">
+            Saved in this tab for your account. Not synced to other devices.
+          </p>
+          {!chats.length ? (
+            <p>No conversations yet. Ask Pip your first question below.</p>
+          ) : (
+            chats.map((c) => (
+              <div className="pip-history-row" key={c.id}>
+                <button
+                  disabled={busy}
+                  aria-pressed={chatId === c.id}
+                  onClick={() => {
+                    setChatId(c.id);
+                    setTurns(c.turns);
+                    setBudget(c.budget);
+                    setQuery("");
+                    setError("");
+                    setShowHistory(false);
+                  }}
+                >
+                  <strong>{c.turns[0].question}</strong>
+                  <small>
+                    {new Date(c.updatedAt).toLocaleString()} · {c.turns.length}{" "}
+                    exchanges
+                  </small>
+                </button>
+                <button
+                  className="text-button"
+                  disabled={busy}
+                  aria-label={`Delete chat: ${c.turns[0].question}`}
+                  onClick={() => {
+                    const remaining = chats.filter((x) => x.id !== c.id);
+                    setChats(remaining);
+                    if (user && !savePipHistory(user.uid, remaining))
+                      setHistoryError(
+                        "This browser couldn’t update saved chat history.",
+                      );
+                    if (chatId === c.id) {
+                      setChatId(null);
+                      setTurns([]);
+                      setQuery("");
+                      setError("");
+                    }
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            ))
+          )}
+        </section>
+      )}
+      {historyError && (
+        <p role="status" className="pip-error">
+          {historyError}
+        </p>
+      )}
       {!ready && (
         <div className="demo-notice">
           <p>
@@ -273,6 +385,7 @@ export default function Pip({
           disabled={busy}
           onClick={() => {
             setTurns([]);
+            setChatId(null);
             setError("");
             setQuery("");
           }}
@@ -283,9 +396,11 @@ export default function Pip({
       <p className="small muted">
         Your question and up to two previous exchanges are sent to Google
         Gemini’s free service. Google may use this content to improve its
-        products. Please don’t share personal or payment details. Chats aren’t
-        saved by Aisle and clear when you close Pip. AI can make mistakes; check
-        the product details. Demo prices are USD.
+        products. Please don’t share personal or payment details. Up to 10 chats
+        are saved for your account in this browser tab, including across
+        refreshes. They aren’t synced to the cloud. Delete them in Recent chats.
+        Only this chat’s latest two exchanges are sent with your question. AI
+        can make mistakes; check the product details. Demo prices are USD.
       </p>
     </div>
   );

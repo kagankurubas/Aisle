@@ -24,7 +24,7 @@ Implementation is ready; live provider calls have NOT been validated yet. Existi
 
 - Gemini `generateContent` API, fixed `gemini-3.5-flash-lite`; JSON Schema output. Catalog IDs, duplicate recommendations, text size and explicit per-item budget are checked again on the server. Prices shown by the UI come from the catalog, never AI text.
 - This is a 12-product sample catalog, not live merchant inventory. AI explanations can still contain errors. No live web search, arbitrary tools, automatic purchases, cart changes or account access by the model.
-- Latest question and up to two earlier question/answer exchanges are sent. Browser keeps up to five visible turns in React memory; closing Pip or switching accounts clears them. Aisle does not save chats in localStorage, Firestore or logs.
+- Latest question and up to two earlier question/answer exchanges are sent. Browser tab sessionStorage keeps up to 10 chats with up to 10 turns each, scoped to the signed-in account. Closing/reopening Pip and refreshing restore history; it is not synced to other devices. New chat starts a separate conversation; Recent chats supports reopening and deletion. Another account cannot see the previous account’s chat in the UI. Chats are not sent to Firestore or application logs. Browser session restoration may retain sessionStorage; delete chats on shared devices.
 - Server strips obvious emails and 10–19 digit sequences before the provider request; this is only a precaution and cannot reliably remove arbitrary personal information. Do not enter private information.
 - Firebase ID token is verified server-side; token, email, name, bag, orders, delivery details and payment credentials are not passed to Google Gemini. Only bounded chat text, optional budget and public catalog facts are sent. `store:false` requests that provider request logging be disabled; it is NOT a promise of zero retention or exclusion from product improvement. Google states Free Tier content may be used to improve its products. The UI discloses this. Never send real customer, payment or sensitive information.
 - Redis stores counts under hashed account IDs and fixed UTC day/minute keys, not chat text. Keys expire after at most 48 hours from their last attempt. Request content/credentials/provider errors are never logged by application code. Hosting/service access metadata may still exist.
@@ -48,7 +48,7 @@ Implementation is ready; live provider calls have NOT been validated yet. Existi
 4. Ask `Compare AirPods and Beats Flex`; verify 5/12-hour battery and no noise cancellation from current sample specs.
 5. Set budget to 10 USD and ask for a laptop: explain there is no match, never invent a cheap laptop.
 6. Open product details; add and compare explicitly. Pip never changes the bag on its own.
-7. Close/reopen Pip and sign out: conversation must be gone. Refresh preserves existing shopping data independently.
+7. Close/reopen Pip and refresh: saved chats should remain for this account in the same tab. Switch accounts: no previous-account chats appear. Delete a chat: it must stay deleted when reopened. Shopping data remains independent.
 8. Send six short questions within a minute: quota response should stop additional calls. Inspect Redis counts and AI Studio usage without exposing tokens/prompts. Wait for next minute for recovery (daily limit still applies).
 9. Exhausted provider quota returns 429 with a free-quota message and makes no retry/fallback request. Confirm missing/disabled provider setup gives a clear error, with bag and lists untouched. Complete the final security scan and broad bug sweep after activation.
 
@@ -57,3 +57,8 @@ Implementation is ready; live provider calls have NOT been validated yet. Existi
 The zero-budget design relies on an **unbilled Gemini Free Tier project** and **Upstash Free**. Keep existing Vercel/Pages on their free plans. There is no OpenAI request path, paid fallback, paid tools, external search, account upgrade or auto-retry in Pip. If someone later links billing to the Gemini project, the same API key can become billable; app request limits alone do not make a paid account free. Do not upgrade these accounts for this exam. Model availability and free quotas vary by account/region and can change; inspect AI Studio's active model limits before the live test. If unavailable, stop and adjust to another confirmed free model rather than enabling billing.
 
 References: [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing), [Free/Paid billing](https://ai.google.dev/gemini-api/docs/billing), [model](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite), [generateContent API](https://ai.google.dev/api/generate-content), [Upstash Free](https://upstash.com/pricing/redis).
+
+
+## User-confirmed live checks
+
+Turkish recommendations under 150 USD, grounded 12/5-hour battery comparison/selection, and no laptop recommendation under 10 USD passed via user screenshots. Remaining live acceptance checks are still pending. New history UI uses tab sessionStorage; local fixture browser tests verified listing and reopening another chat with its budget, plus automated account-isolation/corruption/size/storage-failure checks. Modal inside-to-outside drag remains open, ordinary outside click closes. 25 tests and build pass. No model call was made for this UI verification.

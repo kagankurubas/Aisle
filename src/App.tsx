@@ -1292,6 +1292,7 @@ export default function App() {
             {panel === "orders" && orderHistory()}
             {panel === "guide" && (
               <Pip
+                key={user?.uid ?? "guest"}
                 user={user}
                 onSignIn={() => {
                   setPanel(null);

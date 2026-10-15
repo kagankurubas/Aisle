@@ -14,6 +14,8 @@ export default function Modal({
   notification?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const backdropPress = useRef<number | null>(null);
+  const backdropRelease = useRef(false);
   useEffect(() => {
     const el = ref.current!;
     el.showModal();
@@ -30,8 +32,36 @@ export default function Modal({
       className={`modal ${wide ? "wide" : ""}`}
       aria-labelledby="modal-title"
       onCancel={onClose}
+      onPointerDown={(e) => {
+        const box = e.currentTarget.getBoundingClientRect();
+        const outside =
+          e.clientX < box.left ||
+          e.clientX > box.right ||
+          e.clientY < box.top ||
+          e.clientY > box.bottom;
+        backdropPress.current = outside ? e.pointerId : null;
+        backdropRelease.current = false;
+      }}
+      onPointerUp={(e) => {
+        const box = e.currentTarget.getBoundingClientRect();
+        const outside =
+          e.clientX < box.left ||
+          e.clientX > box.right ||
+          e.clientY < box.top ||
+          e.clientY > box.bottom;
+        backdropRelease.current =
+          backdropPress.current === e.pointerId && outside;
+        backdropPress.current = null;
+      }}
+      onPointerCancel={() => {
+        backdropPress.current = null;
+        backdropRelease.current = false;
+      }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        const shouldClose =
+          backdropRelease.current && e.target === e.currentTarget;
+        backdropRelease.current = false;
+        if (shouldClose) onClose();
       }}
     >
       <header className="modal-head">

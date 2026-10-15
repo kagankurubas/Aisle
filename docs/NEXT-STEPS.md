@@ -103,3 +103,13 @@ Normal USD checkout tek akışa indirildi; tanılama ve çevrimdışı siparişl
 - Vercel Production: GEMINI_API_KEY, UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, PIP_ENABLED=true. Firebase browser key bu işe kullanılmayacak, anahtarlar sohbete/depo içine yazılmayacak.
 - 23 test ve derleme geçti; canlı AI/Redis testi henüz yapılmadı. Kota dolduğunda açık mesajla duracak; ücretli servise geçmeyecek.
 - Güncel kurulum ve kabul testleri: docs/PIP-SETUP.md. Sonraki UX, güvenlik ve geniş bug taraması sırası korunuyor.
+
+
+## Pip canlı testleri ve sonraki deneyim adımları
+
+Canlıda kullanıcı ekran görüntüleriyle doğrulandı: Türkçe 150 USD altı kulaklık önerisi (Beats Flex 49.99 / AirPods 129), takip sorusunda 12/5 saatlik pil verileri ve gerekçeli seçim, 10 USD bütçede laptop olmadığını söyleme. Bunlar tüm kalite/kota testlerinin tamamlandığı anlamına gelmez.
+
+- Düzeltildi: modal içinde başlayıp dışarıda biten basma/bırakma hareketi artık kapatmıyor; yalnız gerçek dış tıklama kapatıyor. Tüm modal pencerelere uygulanır.
+- Eklendi: Pip Recent chats; hesaba göre bu tarayıcı sekmesinde en çok 10 sohbet, her birinde son 10 soru/yanıt. Aç/kapat ve yenilemede geri açılır; başka cihazla senkronizasyon yok. Sohbet açma/yeni sohbet/silme desteklenir. Eski sürümde kaydedilmeyen konuşmalar geri getirilemez.
+- Sıradaki Pip tasarım adımı: mağaza içinde ürünlere eşlik eden küçük Pip; öneriden ilgili rafa/ürüne gitme ve ürüne bağlı yardım. Sabit sohbet açma düğmesi, kapatılabilir rehberlik, mobilde erişilebilir alan ve azaltılmış hareket tercihi. Kullanıcı istemeden sepet değişikliği veya sürekli AI çağrısı olmayacak. Sohbet geçmişiyle aynı oturumu kullanacak.
+- Ardından hesap UX/mobil iyileştirmeleri, AI ve sohbet saklama dahil son güvenlik incelemesi, kapsamlı bug taraması ve video hazırlığı.
