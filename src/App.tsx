@@ -43,6 +43,7 @@ import Modal from "./Modal";
 import { authAvailable, subscribeAuth, type SessionUser } from "./auth";
 import useShoppingData from "./useShoppingData";
 const Account = lazy(() => import("./Account"));
+const AccountPage = lazy(() => import("./AccountPage"));
 const Compare = lazy(() => import("./Compare"));
 const Checkout = lazy(() => import("./Checkout"));
 type Panel =
@@ -66,6 +67,9 @@ function Stars({ p }: { p: Product }) {
 }
 export default function App() {
   const [user, setUser] = useState<SessionUser | null>(null);
+  const [accountPage, setAccountPage] = useState(
+    window.location.hash.startsWith("#account"),
+  );
   const [authReady, setAuthReady] = useState(!authAvailable);
   const {
     cart,
@@ -96,6 +100,19 @@ export default function App() {
   const [lastOrder, setLastOrder] = useState<DemoOrder | null>(null);
   const catalogRef = useRef<HTMLElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const route = () => {
+      setAccountPage(window.location.hash.startsWith("#account"));
+      setPanel(null);
+      setDetail(null);
+    };
+    window.addEventListener("hashchange", route);
+    return () => window.removeEventListener("hashchange", route);
+  }, []);
+  useEffect(() => {
+    if (user && panel === "account") openAccount();
+    if (authReady && !user && accountPage) leaveAccount();
+  }, [user?.uid, panel, authReady, accountPage]);
   useEffect(() => {
     let cancelled = false;
     let unsubscribe = () => {};
@@ -197,6 +214,7 @@ export default function App() {
     setSelected((prev) => [...prev, p.id]);
   }
   function browse(c = "All") {
+    leaveAccount();
     setCategory(c);
     setSavedOnly(false);
     setQuery("");
@@ -212,6 +230,19 @@ export default function App() {
   function close() {
     setPanel(null);
     setDetail(null);
+  }
+  function leaveAccount() {
+    if (window.location.hash.startsWith("#account")) {
+      setAccountPage(false);
+      window.location.hash = "catalog";
+    }
+  }
+  function openAccount(section = "account") {
+    close();
+    if (user) {
+      setAccountPage(true);
+      window.location.hash = section;
+    } else setPanel("account");
   }
   function findWithGuide(text: string) {
     setGuideQuery(text);
@@ -241,6 +272,90 @@ export default function App() {
       }))
       .sort((a, b) => b.score - a.score || a.p.price - b.p.price);
     setGuideResult(ranked.slice(0, 3).map((r) => r.p));
+  }
+  function orderHistory() {
+    return (
+      <div className="orders-content">
+        <p className="demo-notice">
+          Browser-local demonstration orders · No real purchases
+        </p>
+        {!orders.length ? (
+          <div className="empty">
+            <Package size={36} />
+            <h3>A good story starts with a first find.</h3>
+            <p>You haven’t placed a demo order yet.</p>
+            <button
+              className="primary"
+              onClick={() => {
+                close();
+                browse();
+              }}
+            >
+              Explore the shelves <ArrowRight size={17} />
+            </button>
+          </div>
+        ) : (
+          orders.map((o) => (
+            <article className="order" key={o.id}>
+              <div className="order-meta">
+                <strong>{o.id}</strong>
+                <span>
+                  {new Date(o.date).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </span>
+                <span
+                  className={`order-status ${o.status === "Cancelled" ? "cancelled" : ""}`}
+                >
+                  {o.status}
+                </span>
+              </div>
+              {normalizeCart(o.lines).map((l) => {
+                const p = productById(l.id)!;
+                return (
+                  <div className="summary-item" key={l.id}>
+                    <img src={imageFor(p)} alt="" />
+                    <span>
+                      {p.name}
+                      <small>Qty {l.quantity}</small>
+                    </span>
+                  </div>
+                );
+              })}
+              <div className="order-bottom">
+                <strong>{money(o.total)}</strong>
+                {o.status === "Confirmed" && (
+                  <button
+                    className="text-button"
+                    onClick={() => {
+                      setOrders((prev) =>
+                        prev.map((x) =>
+                          x.id === o.id ? { ...x, status: "Cancelled" } : x,
+                        ),
+                      );
+                      notify("Demo order cancelled. No refund was needed.");
+                    }}
+                  >
+                    Cancel demo order
+                  </button>
+                )}
+                <button
+                  className="text-button"
+                  onClick={() => {
+                    setCart((prev) => normalizeCart([...prev, ...o.lines]));
+                    notify("Available items added to your bag.");
+                  }}
+                >
+                  Buy again
+                </button>
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+    );
   }
   function product(p: Product, index: number) {
     return (
@@ -306,8 +421,11 @@ export default function App() {
   }
   return (
     <>
-      <a href="#catalog" className="skip-link">
-        Skip to products
+      <a
+        href={accountPage ? "#account-details" : "#catalog"}
+        className="skip-link"
+      >
+        {accountPage ? "Skip to account details" : "Skip to products"}
       </a>
       <div className="announcement">
         <span>
@@ -338,6 +456,7 @@ export default function App() {
               placeholder="Find your next good thing"
               value={query}
               onChange={(e) => {
+                leaveAccount();
                 setQuery(e.target.value);
                 setSavedOnly(false);
               }}
@@ -361,19 +480,30 @@ export default function App() {
           <div className="header-actions">
             <button
               className="account-button"
-              aria-label={signedIn ? `My account${user?.displayName ? `: ${user.displayName}` : ""}` : demo ? "Demo account" : "Sign in"}
+              aria-label={
+                signedIn
+                  ? `My account${user?.displayName ? `: ${user.displayName}` : ""}`
+                  : demo
+                    ? "Demo account"
+                    : "Sign in"
+              }
               title={user?.displayName || undefined}
-              onClick={() => setPanel("account")}
+              onClick={() => openAccount()}
             >
               <UserRound size={20} />
               <span>
-                {signedIn ? user?.displayName || "My account" : demo ? "Demo shopper" : "Sign in"}
+                {signedIn
+                  ? user?.displayName || "My account"
+                  : demo
+                    ? "Demo shopper"
+                    : "Sign in"}
               </span>
             </button>
             <button
               className={`icon-button favorite-nav ${savedOnly ? "active" : ""}`}
               aria-label={`Saved items (${favorites.length})`}
               onClick={() => {
+                leaveAccount();
                 setSavedOnly((v) => !v);
                 setCategory("All");
                 setQuery("");
@@ -437,259 +567,312 @@ export default function App() {
               Retry
             </button>
           ) : syncStatus === "verify" ? (
-            <button className="text-button" onClick={() => setPanel("account")}>
+            <button
+              className="text-button"
+              onClick={() => openAccount("account-details")}
+            >
               Open account
             </button>
           ) : null}
         </div>
       )}
       <main>
-        {browsing && (
-          <section className="hero" aria-label="Welcome to Aisle">
-            <div className="hero-copy">
-              <div className="eyebrow">
-                <span className="tiny-line" /> GOOD THINGS, THOUGHTFULLY FOUND
+        {accountPage && user ? (
+          <Suspense
+            fallback={
+              <div className="empty" role="status">
+                Opening your account…
               </div>
-              <h1>
-                Less scrolling.
-                <br />
-                More <em>finding.</em>
-              </h1>
-              <p>
-                A few things you’ll love. Room to discover them.
-                <br />
-                Welcome to a different kind of everyday store.
-              </p>
-              <button className="primary" onClick={() => browse()}>
-                Explore the shelves <ArrowDown size={17} />
-              </button>
-              <button className="hero-guide" onClick={() => setPanel("guide")}>
-                <span className="pip tiny">
-                  <i />
-                  <i />
-                </span>{" "}
-                A little help choosing?{" "}
-                <span className="underline">
-                  Meet Pip <ArrowUpRight size={13} />
-                </span>
-              </button>
-            </div>
-            <div className="hero-display">
-              <span className="hero-index">
-                THE LISTENING EDIT <span>01 / 03</span>
-              </span>
-              <button
-                className="hero-product"
-                onClick={() => setDetail(products[0])}
-                aria-label="Discover AirPods Max"
-              >
-                <img
-                  src={imageFor(products[0])}
-                  alt="Silver Apple AirPods Max headphones"
-                  fetchPriority="high"
-                  width="500"
-                  height="500"
+            }
+          >
+            <AccountPage
+              key={user.uid}
+              user={user}
+              favorites={favorites}
+              orderCount={orders.length}
+              bagCount={count}
+              onBrowse={() => browse()}
+              onAdd={add}
+              onSave={save}
+              onProduct={setDetail}
+              onBag={() => setPanel("bag")}
+              orders={orderHistory()}
+              settings={
+                <Account
+                  page
+                  user={user}
+                  onUser={setUser}
+                  syncStatus={syncStatus}
+                  savedCount={favorites.length}
+                  onDemo={() => {}}
+                  onOrders={() => openAccount("account-orders")}
+                  onSaved={() => openAccount("account-saved")}
                 />
-              </button>
-              <div className="hero-seal">
-                <Headphones size={22} />
-                <span>
-                  Find your
-                  <br />
-                  <em>quiet.</em>
-                </span>
-              </div>
-              <div className="hero-product-caption">
-                <div>
-                  <span className="eyebrow">APPLE</span>
-                  <button onClick={() => setDetail(products[0])}>
-                    AirPods Max <ArrowUpRight size={17} />
+              }
+            />
+          </Suspense>
+        ) : (
+          <>
+            {browsing && (
+              <section className="hero" aria-label="Welcome to Aisle">
+                <div className="hero-copy">
+                  <div className="eyebrow">
+                    <span className="tiny-line" /> GOOD THINGS, THOUGHTFULLY
+                    FOUND
+                  </div>
+                  <h1>
+                    Less scrolling.
+                    <br />
+                    More <em>finding.</em>
+                  </h1>
+                  <p>
+                    A few things you’ll love. Room to discover them.
+                    <br />
+                    Welcome to a different kind of everyday store.
+                  </p>
+                  <button className="primary" onClick={() => browse()}>
+                    Explore the shelves <ArrowDown size={17} />
                   </button>
-                </div>
-                <div>
-                  <del>$549.00</del>
-                  <strong>$449.00</strong>
-                </div>
-              </div>
-            </div>
-            <span className="hero-bottom-label">CURATED, NOT COMPLICATED.</span>
-          </section>
-        )}
-        <section id="catalog" ref={catalogRef} className="catalog">
-          <div className="catalog-top">
-            <div>
-              <span className="eyebrow">MAKE YOURSELF AT HOME</span>
-              <h2>
-                {savedOnly
-                  ? "Your good finds."
-                  : query
-                    ? `Finds for “${query}”`
-                    : category === "All"
-                      ? "Take a look around."
-                      : `${category}, thoughtfully picked.`}
-              </h2>
-            </div>
-            <div className="catalog-tools">
-              <span className="results-count">
-                {results.length} good {results.length === 1 ? "find" : "finds"}
-              </span>
-              <button
-                className={`filter-button ${filters ? "active" : ""}`}
-                aria-expanded={filters}
-                onClick={() => setFilters((v) => !v)}
-              >
-                <SlidersHorizontal size={16} /> Filter
-              </button>
-              <label className="sort-label">
-                <span className="sr-only">Sort products</span>
-                <select value={sort} onChange={(e) => setSort(e.target.value)}>
-                  <option value="featured">Our favorites</option>
-                  <option value="low">Price: low to high</option>
-                  <option value="high">Price: high to low</option>
-                  <option value="rating">Highest rated</option>
-                </select>
-                <ChevronDown size={14} />
-              </label>
-            </div>
-          </div>
-          {filters && (
-            <div className="filter-panel">
-              <label>
-                Budget: {money(max)}
-                <input
-                  type="range"
-                  min="2000"
-                  max="200000"
-                  step="1000"
-                  value={max}
-                  onChange={(e) => setMax(Number(e.target.value))}
-                />
-              </label>
-              <div>
-                {["All", "Audio", "Workspace", "Everyday"].map((c) => (
                   <button
-                    key={c}
-                    aria-pressed={category === c}
-                    className={category === c ? "chip active" : "chip"}
-                    onClick={() => setCategory(c)}
+                    className="hero-guide"
+                    onClick={() => setPanel("guide")}
                   >
-                    {c}
+                    <span className="pip tiny">
+                      <i />
+                      <i />
+                    </span>{" "}
+                    A little help choosing?{" "}
+                    <span className="underline">
+                      Meet Pip <ArrowUpRight size={13} />
+                    </span>
                   </button>
-                ))}
-              </div>
-              <button
-                className="text-button"
-                onClick={() => {
-                  setMax(200000);
-                  setCategory("All");
-                  setSort("featured");
-                }}
-              >
-                Reset filters
-              </button>
-            </div>
-          )}
-          {results.length === 0 ? (
-            <div className="empty">
-              <Search size={32} />
-              <h3>
-                {savedOnly
-                  ? "A shelf of your own."
-                  : "Nothing on this shelf just yet."}
-              </h3>
-              <p>
-                {savedOnly
-                  ? "Tap the heart on something you like. We’ll keep it here."
-                  : "Try a different search or give your budget a little more room."}
-              </p>
-              <button
-                className="primary"
-                onClick={() => {
-                  browse();
-                  setFilters(false);
-                }}
-              >
-                Explore all finds <ArrowRight size={16} />
-              </button>
-            </div>
-          ) : (
-            ["Audio", "Workspace", "Everyday"].map((c, si) => {
-              const list = results.filter((p) => p.category === c);
-              if (!list.length) return null;
-              return (
-                <section
-                  className="shelf"
-                  key={c}
-                  aria-labelledby={`shelf-${c}`}
-                >
-                  <div className="shelf-heading">
-                    <div>
-                      <span className="shelf-number">0{si + 1}</span>
-                      <h3 id={`shelf-${c}`}>
-                        {c === "Audio"
-                          ? "Sound, in good company."
-                          : c === "Workspace"
-                            ? "Make room for your next idea."
-                            : "Little things. Better days."}
-                      </h3>
-                    </div>
+                </div>
+                <div className="hero-display">
+                  <span className="hero-index">
+                    THE LISTENING EDIT <span>01 / 03</span>
+                  </span>
+                  <button
+                    className="hero-product"
+                    onClick={() => setDetail(products[0])}
+                    aria-label="Discover AirPods Max"
+                  >
+                    <img
+                      src={imageFor(products[0])}
+                      alt="Silver Apple AirPods Max headphones"
+                      fetchPriority="high"
+                      width="500"
+                      height="500"
+                    />
+                  </button>
+                  <div className="hero-seal">
+                    <Headphones size={22} />
                     <span>
-                      {c === "Audio"
-                        ? "For tuning in. Or switching off."
-                        : c === "Workspace"
-                          ? "A desk that works for you."
-                          : "The essentials, considered."}
+                      Find your
+                      <br />
+                      <em>quiet.</em>
                     </span>
                   </div>
-                  <div className="product-shelf">
-                    {list.map((p, i) => product(p, si * 4 + i))}
+                  <div className="hero-product-caption">
+                    <div>
+                      <span className="eyebrow">APPLE</span>
+                      <button onClick={() => setDetail(products[0])}>
+                        AirPods Max <ArrowUpRight size={17} />
+                      </button>
+                    </div>
+                    <div>
+                      <del>$549.00</del>
+                      <strong>$449.00</strong>
+                    </div>
                   </div>
-                </section>
-              );
-            })
-          )}
-        </section>
-        <section className="guide-banner">
-          <div className="pip large">
-            <i />
-            <i />
-            <span />
-          </div>
-          <div>
-            <span className="eyebrow">A LITTLE GUIDANCE GOES A LONG WAY</span>
-            <h2>Good taste. No guesswork.</h2>
-            <p>
-              Tell Pip what you’re looking for. Find a few things worth a closer
-              look.
-            </p>
-          </div>
-          <button className="secondary" onClick={() => setPanel("guide")}>
-            Let’s find your thing <ArrowUpRight size={18} />
-          </button>
-        </section>
-        <div className="promises">
-          <div>
-            <Truck />
-            <span>
-              Delivery, without surprises
-              <small>Free standard delivery from $75</small>
-            </span>
-          </div>
-          <div>
-            <Scale />
-            <span>
-              Details that make a difference
-              <small>A proper side-by-side comparison</small>
-            </span>
-          </div>
-          <div>
-            <ShieldCheck />
-            <span>
-              A safe place to explore
-              <small>No real payments in this demo</small>
-            </span>
-          </div>
-        </div>
+                </div>
+                <span className="hero-bottom-label">
+                  CURATED, NOT COMPLICATED.
+                </span>
+              </section>
+            )}
+            <section id="catalog" ref={catalogRef} className="catalog">
+              <div className="catalog-top">
+                <div>
+                  <span className="eyebrow">MAKE YOURSELF AT HOME</span>
+                  <h2>
+                    {savedOnly
+                      ? "Your good finds."
+                      : query
+                        ? `Finds for “${query}”`
+                        : category === "All"
+                          ? "Take a look around."
+                          : `${category}, thoughtfully picked.`}
+                  </h2>
+                </div>
+                <div className="catalog-tools">
+                  <span className="results-count">
+                    {results.length} good{" "}
+                    {results.length === 1 ? "find" : "finds"}
+                  </span>
+                  <button
+                    className={`filter-button ${filters ? "active" : ""}`}
+                    aria-expanded={filters}
+                    onClick={() => setFilters((v) => !v)}
+                  >
+                    <SlidersHorizontal size={16} /> Filter
+                  </button>
+                  <label className="sort-label">
+                    <span className="sr-only">Sort products</span>
+                    <select
+                      value={sort}
+                      onChange={(e) => setSort(e.target.value)}
+                    >
+                      <option value="featured">Our favorites</option>
+                      <option value="low">Price: low to high</option>
+                      <option value="high">Price: high to low</option>
+                      <option value="rating">Highest rated</option>
+                    </select>
+                    <ChevronDown size={14} />
+                  </label>
+                </div>
+              </div>
+              {filters && (
+                <div className="filter-panel">
+                  <label>
+                    Budget: {money(max)}
+                    <input
+                      type="range"
+                      min="2000"
+                      max="200000"
+                      step="1000"
+                      value={max}
+                      onChange={(e) => setMax(Number(e.target.value))}
+                    />
+                  </label>
+                  <div>
+                    {["All", "Audio", "Workspace", "Everyday"].map((c) => (
+                      <button
+                        key={c}
+                        aria-pressed={category === c}
+                        className={category === c ? "chip active" : "chip"}
+                        onClick={() => setCategory(c)}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    className="text-button"
+                    onClick={() => {
+                      setMax(200000);
+                      setCategory("All");
+                      setSort("featured");
+                    }}
+                  >
+                    Reset filters
+                  </button>
+                </div>
+              )}
+              {results.length === 0 ? (
+                <div className="empty">
+                  <Search size={32} />
+                  <h3>
+                    {savedOnly
+                      ? "A shelf of your own."
+                      : "Nothing on this shelf just yet."}
+                  </h3>
+                  <p>
+                    {savedOnly
+                      ? "Tap the heart on something you like. We’ll keep it here."
+                      : "Try a different search or give your budget a little more room."}
+                  </p>
+                  <button
+                    className="primary"
+                    onClick={() => {
+                      browse();
+                      setFilters(false);
+                    }}
+                  >
+                    Explore all finds <ArrowRight size={16} />
+                  </button>
+                </div>
+              ) : (
+                ["Audio", "Workspace", "Everyday"].map((c, si) => {
+                  const list = results.filter((p) => p.category === c);
+                  if (!list.length) return null;
+                  return (
+                    <section
+                      className="shelf"
+                      key={c}
+                      aria-labelledby={`shelf-${c}`}
+                    >
+                      <div className="shelf-heading">
+                        <div>
+                          <span className="shelf-number">0{si + 1}</span>
+                          <h3 id={`shelf-${c}`}>
+                            {c === "Audio"
+                              ? "Sound, in good company."
+                              : c === "Workspace"
+                                ? "Make room for your next idea."
+                                : "Little things. Better days."}
+                          </h3>
+                        </div>
+                        <span>
+                          {c === "Audio"
+                            ? "For tuning in. Or switching off."
+                            : c === "Workspace"
+                              ? "A desk that works for you."
+                              : "The essentials, considered."}
+                        </span>
+                      </div>
+                      <div className="product-shelf">
+                        {list.map((p, i) => product(p, si * 4 + i))}
+                      </div>
+                    </section>
+                  );
+                })
+              )}
+            </section>
+            <section className="guide-banner">
+              <div className="pip large">
+                <i />
+                <i />
+                <span />
+              </div>
+              <div>
+                <span className="eyebrow">
+                  A LITTLE GUIDANCE GOES A LONG WAY
+                </span>
+                <h2>Good taste. No guesswork.</h2>
+                <p>
+                  Tell Pip what you’re looking for. Find a few things worth a
+                  closer look.
+                </p>
+              </div>
+              <button className="secondary" onClick={() => setPanel("guide")}>
+                Let’s find your thing <ArrowUpRight size={18} />
+              </button>
+            </section>
+            <div className="promises">
+              <div>
+                <Truck />
+                <span>
+                  Delivery, without surprises
+                  <small>Free standard delivery from $75</small>
+                </span>
+              </div>
+              <div>
+                <Scale />
+                <span>
+                  Details that make a difference
+                  <small>A proper side-by-side comparison</small>
+                </span>
+              </div>
+              <div>
+                <ShieldCheck />
+                <span>
+                  A safe place to explore
+                  <small>No real payments in this demo</small>
+                </span>
+              </div>
+            </div>
+          </>
+        )}
       </main>
       <footer>
         <div>
@@ -699,10 +882,16 @@ export default function App() {
           <p>A little store. A better way to find.</p>
         </div>
         <div className="footer-links">
-          <button onClick={() => setPanel("orders")}>Your orders</button>
+          <button
+            onClick={() =>
+              user ? openAccount("account-orders") : setPanel("orders")
+            }
+          >
+            Your orders
+          </button>
           <button
             onClick={() => {
-              setPanel("account");
+              openAccount();
             }}
           >
             Your account
@@ -1068,7 +1257,9 @@ export default function App() {
                     "Welcome, demo shopper. No personal information needed.",
                   );
                 }}
-                onOrders={() => setPanel("orders")}
+                onOrders={() =>
+                  user ? openAccount("account-orders") : setPanel("orders")
+                }
                 onSaved={() => {
                   close();
                   setSavedOnly(true);
@@ -1078,94 +1269,7 @@ export default function App() {
                 }}
               />
             )}
-            {panel === "orders" && (
-              <div className="orders-content">
-                <p className="demo-notice">
-                  Browser-local demonstration orders · No real purchases
-                </p>
-                {!orders.length ? (
-                  <div className="empty">
-                    <Package size={36} />
-                    <h3>A good story starts with a first find.</h3>
-                    <p>You haven’t placed a demo order yet.</p>
-                    <button
-                      className="primary"
-                      onClick={() => {
-                        close();
-                        browse();
-                      }}
-                    >
-                      Explore the shelves <ArrowRight size={17} />
-                    </button>
-                  </div>
-                ) : (
-                  orders.map((o) => (
-                    <article className="order" key={o.id}>
-                      <div className="order-meta">
-                        <strong>{o.id}</strong>
-                        <span>
-                          {new Date(o.date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </span>
-                        <span
-                          className={`order-status ${o.status === "Cancelled" ? "cancelled" : ""}`}
-                        >
-                          {o.status}
-                        </span>
-                      </div>
-                      {normalizeCart(o.lines).map((l) => {
-                        const p = productById(l.id)!;
-                        return (
-                          <div className="summary-item" key={l.id}>
-                            <img src={imageFor(p)} alt="" />
-                            <span>
-                              {p.name}
-                              <small>Qty {l.quantity}</small>
-                            </span>
-                          </div>
-                        );
-                      })}
-                      <div className="order-bottom">
-                        <strong>{money(o.total)}</strong>
-                        {o.status === "Confirmed" && (
-                          <button
-                            className="text-button"
-                            onClick={() => {
-                              setOrders((prev) =>
-                                prev.map((x) =>
-                                  x.id === o.id
-                                    ? { ...x, status: "Cancelled" }
-                                    : x,
-                                ),
-                              );
-                              notify(
-                                "Demo order cancelled. No refund was needed.",
-                              );
-                            }}
-                          >
-                            Cancel demo order
-                          </button>
-                        )}
-                        <button
-                          className="text-button"
-                          onClick={() => {
-                            setCart((prev) =>
-                              normalizeCart([...prev, ...o.lines]),
-                            );
-                            notify("Available items added to your bag.");
-                          }}
-                        >
-                          Buy again
-                        </button>
-                      </div>
-                    </article>
-                  ))
-                )}
-              </div>
-            )}
+            {panel === "orders" && orderHistory()}
             {panel === "guide" && (
               <div className="guide-content">
                 <div className="guide-welcome">

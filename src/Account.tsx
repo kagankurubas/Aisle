@@ -25,6 +25,7 @@ export default function Account({
   onSaved,
   savedCount,
   syncStatus,
+  page = false,
 }: {
   user: SessionUser | null;
   onUser: (user: SessionUser | null) => void;
@@ -33,6 +34,7 @@ export default function Account({
   onSaved: () => void;
   savedCount: number;
   syncStatus: string;
+  page?: boolean;
 }) {
   const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
   const [email, setEmail] = useState("");
@@ -108,7 +110,9 @@ export default function Account({
   }
   return (
     <div className="account-content">
-      <p className="muted">A small space for your saved finds and orders.</p>
+      {!page && (
+        <p className="muted">A small space for your saved finds and orders.</p>
+      )}
       {user ? (
         <>
           <p className="account-email">
@@ -315,23 +319,25 @@ export default function Account({
       <p className="auth-feedback" role="status" aria-live="polite">
         {message}
       </p>
-      <div className="account-links">
-        <button onClick={onOrders}>
-          <Package size={20} />
-          <span>
-            Your demo orders
-            <small>Confirmation, details, and cancellation</small>
-          </span>
-          <ArrowRight size={18} />
-        </button>
-        <button onClick={onSaved}>
-          <Heart size={20} />
-          <span>
-            Your saved finds<small>{savedCount} things to come back to</small>
-          </span>
-          <ArrowRight size={18} />
-        </button>
-      </div>
+      {!page && (
+        <div className="account-links">
+          <button onClick={onOrders}>
+            <Package size={20} />
+            <span>
+              Your demo orders
+              <small>Confirmation, details, and cancellation</small>
+            </span>
+            <ArrowRight size={18} />
+          </button>
+          <button onClick={onSaved}>
+            <Heart size={20} />
+            <span>
+              Your saved finds<small>{savedCount} things to come back to</small>
+            </span>
+            <ArrowRight size={18} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -26,3 +26,13 @@ still require deployment checks. This implementation displays an ephemeral sandb
 receipt; it does not persist a paid order or trigger fulfilment. Existing Firestore
 rules are unchanged. See PAYMENT-SANDBOX.md for deployment steps and limits.
 
+
+## Account page
+
+Signed-in account navigation now opens hash-routed full-page sections for saved
+finds, browser-local demo orders and existing account/verification controls. Guests
+retain the sign-in modal. Shared order rendering preserves cancel/buy-again behavior.
+The production build and isolated React render checks (populated/empty favorites,
+section anchors, Pages asset prefix, no dialog) pass. Responsive CSS is included;
+live browser layout and back-navigation still need user verification after deployment.
+
