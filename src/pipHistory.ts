@@ -9,6 +9,7 @@ export type PipChat = {
   updatedAt: number;
   budget: string;
   turns: Turn[];
+  productId?: number;
 };
 const key = (uid: string) => `aisle:pip-chats:v1:${uid}`;
 export function normalizePipHistory(value: unknown): PipChat[] {
@@ -28,6 +29,8 @@ export function normalizePipHistory(value: unknown): PipChat[] {
           (!Number.isFinite(Number(c.budget)) ||
             Number(c.budget) < 0 ||
             Number(c.budget) > 10000)) ||
+        (c.productId !== undefined &&
+          (!Number.isInteger(c.productId) || !productById(c.productId))) ||
         !Array.isArray(c.turns) ||
         !c.turns.length ||
         c.turns.length > 10
@@ -62,6 +65,7 @@ export function normalizePipHistory(value: unknown): PipChat[] {
       id: c.id,
       updatedAt: c.updatedAt,
       budget: c.budget,
+      ...(c.productId !== undefined ? { productId: c.productId } : {}),
       turns: c.turns.map((t) => ({
         question: t.question,
         advice: {
@@ -94,4 +98,18 @@ export function savePipHistory(uid: string, chats: PipChat[]): boolean {
   } catch {
     return false;
   }
+}
+
+export function readActivePipChat(uid: string): string | null {
+  try {
+    return sessionStorage.getItem(key(uid) + ":active");
+  } catch {
+    return null;
+  }
+}
+export function saveActivePipChat(uid: string, id: string | null): void {
+  try {
+    if (id === null) sessionStorage.removeItem(key(uid) + ":active");
+    else sessionStorage.setItem(key(uid) + ":active", id);
+  } catch {}
 }

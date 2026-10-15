@@ -123,3 +123,15 @@ Canlıda kullanıcı ekran görüntüleriyle doğrulandı: Türkçe 150 USD alt�
 - Ürünlerin bağımsız #product/ID sayfaları ve /reviews bölümü hazır. Popup varsayılan hızlı bakış olarak kaldı; tam sayfa bağlantısı eklendi. Yorumlar açıkça temsili; gerçek kullanıcı yorum veritabanı henüz yok.
 - 26 uygulama, 8 Firestore emülatör testi ve derleme geçti; desktop/mobil görünüm, tema kalıcılığı, sayfa yenileme/yorum bağlantısı ve kart kopyalama tarayıcıda kontrol edildi. Canlı Anonymous giriş testi henüz bekliyor.
 - Sonraki sıra: bu sürümün canlı testi → Pip’in mağaza/ürün içinde eşlik etmesi → hesap UX ve son mobil rötuşlar → güncel güvenlik taraması → geniş bug taraması/düzeltme → final yayın ve video.
+
+
+## Pip mağaza yardımcısı hazır
+
+- Mağaza ve ürün sayfalarında küçük Pip erişimi; ürün adı bağlamına göre değişir. Mobilde kompakt, karşılaştırma çubuğuyla çakışmayacak konumda. Pencerelerde/giriş-hesap sayfasında tekrar düğmesi gösterilmez.
+- Gizle düğmesi ve footer üzerinden geri gösterme; tercih aynı sekmede yenilemede korunur. Pip kendiliğinden dolaşarak ekranı kaplamaz; rehberlik kullanıcı isteğiyle açılır. Küçük düğmede sürekli animasyon yok, mevcut azaltılmış hareket tercihi korunur.
+- Tam ürün sayfası ve hızlı bakışta Ask Pip about this product; soru hazırlanır fakat kendiliğinden gönderilmez. Ürün bağlamı sunucuda katalog ID'siyle doğrulanır, fiyat/özellik istemciden alınmaz.
+- Pip önerisinden tam ürün sayfasına gidilir; aynı kategoride iki/üç öneri Compare these finds ile karşılaştırılır. Sepet değişikliği her zaman açık butonla yapılır.
+- Seçili eski sohbet ve ürün bağlamı hesap/sekme kapsamında korunur. Sohbetten çıkıp geri dönünce en yeni sohbet yerine seçilen sohbet açılır.
+- 28 test + derleme geçti; yerel tarayıcıda ürün bağlamı/soru, gizle-göster/yenileme, 390px mobil/kısa liste konumu ve örnek verilerle karşılaştırma/sohbete dönüş doğrulandı. Canlı model çağrısı yapılmadı.
+- Yayın sonrası AirPods sayfasından Pip'e “Bunun pil ömrü ne kadar?” sorusu gönderilip katalogdaki 5 saat yanıtı doğrulanacak. Yeni Vercel değişkeni veya Firestore kural değişikliği gerekmiyor.
+- Sonraki iş: hesap sayfası UX ve mobil son rötuşlar → güncel güvenlik taraması → kapsamlı bug taraması ve düzeltmeler → final yayın, videolar.

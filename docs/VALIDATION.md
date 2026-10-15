@@ -96,3 +96,8 @@ User requires a free exam implementation. Replaced OpenAI with fixed Gemini 3.5 
 ## Product separation polish
 
 Added subtle rounded image backgrounds, wider horizontal/vertical product gaps and more space between category groups; shelf lines remain removed. Build passes. Browser visual checks passed in light/dark desktop and 390px mobile. Styling-only change; business rules and persistence unchanged.
+
+
+## Pip companion and contextual shopping
+
+28 automated tests and build pass. Added catalog-only current-product validation (reject malformed/unknown IDs and client product facts), explicit budget preserved even when the selected context item exceeds it, account-scoped active-chat selection and product-context roundtrip. Browser checked real app product companion opens prepared AirPods question without submission, hide/reload/restore, product-page context, and 390px companion clearance above the shortlist. An ignored local fixture using actual Pip/Modal verified two recommended IDs passed to comparison and the selected older chat restored after reopening. Provider tests use injected responses; no live model/auth/payment requests were made for these flows. Live contextual question after publishing remains pending.

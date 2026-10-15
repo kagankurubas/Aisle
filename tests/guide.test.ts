@@ -91,6 +91,49 @@ test("guide is disabled without all server secrets and refuses unsafe Redis targ
   ])
     assert.throws(() => guideConfig({ ...base, UPSTASH_REDIS_REST_URL: url }));
 });
+test("product context accepts only catalog IDs and cannot override catalog facts or budgets", async () => {
+  const messages = [{ role: "user", content: "Tell me about this product" }];
+  assert.equal(guideInput({ messages, productId: 100 }).productId, 100);
+  for (const productId of [999, "100", -1, {}, true])
+    assert.throws(() => guideInput({ messages, productId }));
+  assert.throws(() =>
+    guideInput({ messages, productId: 100, product: { price: 1 } }),
+  );
+  let calls = 0;
+  await askGuide(
+    guideInput({ messages, productId: 101, budget: 1000 }),
+    { key: "fixture" },
+    async (_url: string, options: any) => {
+      calls++;
+      const prompt = JSON.parse(options.body).systemInstruction.parts[0].text;
+      assert.ok(prompt.includes("Current product context"));
+      assert.ok(prompt.includes('"id":101'));
+      assert.ok(prompt.includes('"price":44900'));
+      assert.ok(prompt.includes("Hard budget USD cents: 1000"));
+      return {
+        ok: true,
+        json: async () => ({
+          candidates: [
+            {
+              finishReason: "STOP",
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      answer: "This item exceeds your budget.",
+                      products: [],
+                    }),
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      };
+    },
+  );
+  assert.equal(calls, 1);
+});
 test("guide rejects invented, duplicate and over-budget recommendations", () => {
   assert.equal(
     validateGuide(

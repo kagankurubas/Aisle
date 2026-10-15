@@ -4,6 +4,8 @@ import {
   normalizePipHistory,
   readPipHistory,
   savePipHistory,
+  readActivePipChat,
+  saveActivePipChat,
 } from "../src/pipHistory.ts";
 const chat = {
   id: "chat-1",
@@ -19,6 +21,29 @@ const chat = {
     },
   ],
 };
+test("selected conversation and product context remain scoped to their account", () => {
+  const values = new Map<string, string>();
+  Object.defineProperty(globalThis, "sessionStorage", {
+    configurable: true,
+    value: {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => values.set(key, value),
+      removeItem: (key: string) => values.delete(key),
+    },
+  });
+  try {
+    savePipHistory("alice", [{ ...chat, productId: 100 }]);
+    saveActivePipChat("alice", "chat-1");
+    assert.equal(readActivePipChat("alice"), "chat-1");
+    assert.equal(readActivePipChat("bob"), null);
+    assert.equal(readPipHistory("alice")[0].productId, 100);
+    assert.deepEqual(normalizePipHistory([{ ...chat, productId: 999 }]), []);
+    saveActivePipChat("alice", null);
+    assert.equal(readActivePipChat("alice"), null);
+  } finally {
+    Reflect.deleteProperty(globalThis, "sessionStorage");
+  }
+});
 test("chat history rejects corrupt data and invented products; bounds saved context", () => {
   assert.deepEqual(normalizePipHistory([chat]), [chat]);
   for (const value of [

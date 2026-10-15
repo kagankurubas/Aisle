@@ -42,6 +42,7 @@ import {
 } from "./shop";
 import Modal from "./Modal";
 import ThemeToggle from "./ThemeToggle";
+import PipCompanion from "./PipCompanion";
 import { productRoute as readProductRoute } from "./productRoute";
 import { authAvailable, subscribeAuth, type SessionUser } from "./auth";
 import { canUseAccount } from "./accountAccess";
@@ -108,6 +109,14 @@ export default function App() {
   const [filters, setFilters] = useState(false);
   const [toast, setToast] = useState("");
   const [demo, setDemo] = useState(false);
+  const [pipContext, setPipContext] = useState<Product | null>(null);
+  const [pipHidden, setPipHidden] = useState(() => {
+    try {
+      return sessionStorage.getItem("aisle.pip-companion-hidden") === "true";
+    } catch {
+      return false;
+    }
+  });
   const [authError, setAuthError] = useState("");
   const [lastOrder, setLastOrder] = useState<DemoOrder | null>(null);
   const catalogRef = useRef<HTMLElement>(null);
@@ -246,6 +255,7 @@ export default function App() {
       return;
     }
     setSelected((prev) => [...prev, p.id]);
+    if (panel === "guide") notify(`${p.name} added to your shortlist.`);
   }
   function browse(c = "All") {
     leaveAccount();
@@ -260,6 +270,30 @@ export default function App() {
         block: "start",
       }),
     );
+  }
+  function openPip(product?: Product) {
+    setPipContext(product ?? null);
+    setDetail(null);
+    setPanel("guide");
+  }
+  function hidePip(hidden: boolean) {
+    setPipHidden(hidden);
+    try {
+      sessionStorage.setItem("aisle.pip-companion-hidden", String(hidden));
+    } catch {}
+  }
+  function comparePipFinds(ids: number[]) {
+    const items = ids.map(productById).filter((p): p is Product => Boolean(p));
+    if (
+      items.length < 2 ||
+      items.length > 3 ||
+      new Set(ids).size !== items.length ||
+      items.some((p) => p.kind !== items[0].kind)
+    )
+      return;
+    setSelected(items.map((p) => p.id));
+    setPipContext(null);
+    setPanel("compare");
   }
   function close() {
     setPanel(null);
@@ -607,6 +641,7 @@ export default function App() {
               onAdd={add}
               onSave={save}
               onCompare={select}
+              onAskPip={openPip}
               saved={favorites.includes(productRoute.id ?? -1)}
               selected={selected.includes(productRoute.id ?? -1)}
               listStore={listStore}
@@ -671,10 +706,7 @@ export default function App() {
                   <button className="primary" onClick={() => browse()}>
                     Explore the shelves <ArrowDown size={17} />
                   </button>
-                  <button
-                    className="hero-guide"
-                    onClick={() => setPanel("guide")}
-                  >
+                  <button className="hero-guide" onClick={() => openPip()}>
                     <span className="pip tiny">
                       <i />
                       <i />
@@ -882,7 +914,7 @@ export default function App() {
                   closer look.
                 </p>
               </div>
-              <button className="secondary" onClick={() => setPanel("guide")}>
+              <button className="secondary" onClick={() => openPip()}>
                 Let’s find your thing <ArrowUpRight size={18} />
               </button>
             </section>
@@ -912,7 +944,7 @@ export default function App() {
           </>
         )}
       </main>
-      <footer>
+      <footer className={pipHidden ? undefined : "with-pip"}>
         <div>
           <span className="wordmark">
             aisle<span>®</span>
@@ -943,12 +975,25 @@ export default function App() {
           >
             About this demo
           </button>
+          <button onClick={() => hidePip(!pipHidden)}>
+            {pipHidden ? "Show Pip companion" : "Hide Pip companion"}
+          </button>
           <span>© {new Date().getFullYear()} Aisle</span>
           <button onClick={() => setPanel("demo-tools")}>
             Test cards & demo tools
           </button>
         </div>
       </footer>
+      {!pipHidden && !panel && !detail && !accountPage && (
+        <PipCompanion
+          product={productRoute?.id ? productById(productRoute.id) : undefined}
+          raised={selected.length > 0}
+          onOpen={() =>
+            openPip(productRoute?.id ? productById(productRoute.id) : undefined)
+          }
+          onHide={() => hidePip(true)}
+        />
+      )}
       {selected.length > 0 && !panel && !detail && (
         <aside className="compare-dock" aria-label="Comparison shortlist">
           <div className="dock-label">
@@ -1054,6 +1099,13 @@ export default function App() {
                 {selected.includes(detail.id)
                   ? "On your shortlist"
                   : "Add to comparison"}
+              </button>
+              <button className="secondary" onClick={() => openPip(detail)}>
+                <span className="pip tiny" aria-hidden="true">
+                  <i />
+                  <i />
+                </span>
+                Ask Pip about this product
               </button>
               <ListPicker
                 onNotice={notify}
@@ -1341,13 +1393,16 @@ export default function App() {
               <Pip
                 key={user?.uid ?? "guest"}
                 user={user}
+                initialProduct={pipContext}
+                onCompareRecommendations={comparePipFinds}
                 onSignIn={() => {
                   setPanel(null);
                   openAccount();
                 }}
                 onView={(p) => {
                   setPanel(null);
-                  setDetail(p);
+                  setDetail(null);
+                  window.location.hash = `product/${p.id}`;
                 }}
                 onAdd={add}
                 onCompare={select}

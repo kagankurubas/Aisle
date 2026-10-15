@@ -5,6 +5,8 @@ import { getFirebase, type SessionUser } from "./auth";
 import { productById, imageFor, money, type Product } from "./catalog";
 import {
   readPipHistory,
+  readActivePipChat,
+  saveActivePipChat,
   savePipHistory,
   type PipChat,
   type Turn,
@@ -15,13 +17,18 @@ export default function Pip({
   onView,
   onAdd,
   onCompare,
+  initialProduct = null,
+  onCompareRecommendations,
 }: {
+  initialProduct?: Product | null;
+  onCompareRecommendations?: (ids: number[]) => void;
   user: SessionUser | null;
   onSignIn: () => void;
   onView: (p: Product) => void;
   onAdd: (p: Product) => void;
   onCompare: (p: Product) => void;
 }) {
+  const [contextId, setContextId] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [budget, setBudget] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -37,13 +44,20 @@ export default function Pip({
     pending.current?.abort();
     pending.current = null;
     const saved = user?.uid ? readPipHistory(user.uid) : [];
+    const activeId = user?.uid ? readActivePipChat(user.uid) : null;
+    const active = saved.find((c) => c.id === activeId) ?? saved[0];
     setChats(saved);
-    setChatId(saved[0]?.id ?? null);
-    setBudget(saved[0]?.budget ?? "");
-    setTurns(saved[0]?.turns ?? []);
+    setChatId(active?.id ?? null);
+    setBudget(active?.budget ?? "");
+    setTurns(active?.turns ?? []);
+    setContextId(initialProduct?.id ?? active?.productId ?? null);
     setShowHistory(false);
     setHistoryError("");
-    setQuery("");
+    setQuery(
+      initialProduct
+        ? `What should I know about the ${initialProduct.name}?`
+        : "",
+    );
     setError("");
     setBusy(false);
     return () => {
@@ -89,6 +103,7 @@ export default function Pip({
         },
         body: JSON.stringify({
           messages,
+          productId: contextId,
           budget: budget === "" ? null : Math.round(Number(budget) * 100),
         }),
         signal: controller.signal,
@@ -118,12 +133,19 @@ export default function Pip({
       ];
       const id = chatId ?? crypto.randomUUID();
       const nextChats = [
-        { id, updatedAt: Date.now(), budget, turns: nextTurns },
+        {
+          id,
+          updatedAt: Date.now(),
+          budget,
+          turns: nextTurns,
+          ...(contextId !== null ? { productId: contextId } : {}),
+        },
         ...chats.filter((c) => c.id !== id),
       ].slice(0, 10);
       setTurns(nextTurns);
       setChats(nextChats);
       setChatId(id);
+      saveActivePipChat(owner.uid, id);
       if (!savePipHistory(owner.uid, nextChats))
         setHistoryError(
           "This browser couldn’t save chat history. Keep this window open to continue.",
@@ -141,6 +163,22 @@ export default function Pip({
         pending.current = null;
         setBusy(false);
       }
+    }
+  }
+  function clearProductContext() {
+    const current = contextId !== null ? productById(contextId) : undefined;
+    setContextId(null);
+    if (current && query === `What should I know about the ${current.name}?`)
+      setQuery("");
+    if (user && chatId) {
+      const next = chats.map((c) => {
+        if (c.id !== chatId) return c;
+        const { productId, ...rest } = c;
+        return rest;
+      });
+      setChats(next);
+      if (!savePipHistory(user.uid, next))
+        setHistoryError("This browser couldn’t update saved chat context.");
     }
   }
   const ready = canUseAccount(user);
@@ -174,6 +212,8 @@ export default function Pip({
             onClick={() => {
               setTurns([]);
               setChatId(null);
+              setContextId(null);
+              if (user) saveActivePipChat(user.uid, null);
               setQuery("");
               setError("");
               setShowHistory(false);
@@ -199,6 +239,8 @@ export default function Pip({
                   aria-pressed={chatId === c.id}
                   onClick={() => {
                     setChatId(c.id);
+                    setContextId(c.productId ?? null);
+                    if (user) saveActivePipChat(user.uid, c.id);
                     setTurns(c.turns);
                     setBudget(c.budget);
                     setQuery("");
@@ -225,6 +267,8 @@ export default function Pip({
                       );
                     if (chatId === c.id) {
                       setChatId(null);
+                      setContextId(null);
+                      if (user) saveActivePipChat(user.uid, null);
                       setTurns([]);
                       setQuery("");
                       setError("");
@@ -286,6 +330,25 @@ export default function Pip({
               <span className="eyebrow">Pip · AI advice</span>
               <p>{t.advice.answer}</p>
             </div>
+            {t.advice.products.length >= 2 &&
+              t.advice.products.every(
+                (item) =>
+                  productById(item.id)?.kind ===
+                  productById(t.advice.products[0].id)?.kind,
+              ) &&
+              onCompareRecommendations && (
+                <button
+                  className="secondary pip-compare-recommendations"
+                  onClick={() =>
+                    onCompareRecommendations(
+                      t.advice.products.map((item) => item.id),
+                    )
+                  }
+                >
+                  <Scale size={16} />
+                  Compare these finds
+                </button>
+              )}
             {t.advice.products.map((item) => {
               const p = productById(item.id)!;
               return (
@@ -335,6 +398,39 @@ export default function Pip({
         <p role="alert" className="pip-error">
           {error}
         </p>
+      )}
+      {contextId !== null && productById(contextId) && (
+        <section
+          className="pip-product-context"
+          aria-label="Current product context"
+        >
+          <div>
+            <img src={imageFor(productById(contextId)!)} alt="" />
+            <div>
+              <small>WE’RE LOOKING AT</small>
+              <strong>{productById(contextId)!.name}</strong>
+            </div>
+          </div>
+          <p>
+            Pip will use this product’s catalog details when you send your
+            question.
+          </p>
+          <div className="pip-context-actions">
+            <button
+              className="text-button"
+              onClick={() => onView(productById(contextId)!)}
+            >
+              Open product page
+            </button>
+            <button
+              className="text-button"
+              disabled={busy}
+              onClick={clearProductContext}
+            >
+              Clear product context
+            </button>
+          </div>
+        </section>
       )}
       <form
         onSubmit={(e) => {
@@ -387,6 +483,8 @@ export default function Pip({
           onClick={() => {
             setTurns([]);
             setChatId(null);
+            setContextId(null);
+            if (user) saveActivePipChat(user.uid, null);
             setError("");
             setQuery("");
           }}

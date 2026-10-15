@@ -1,0 +1,142 @@
+.pip-companion {
+  position: fixed;
+  z-index: 35;
+  right: 22px;
+  bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-input, #fcfbf5);
+  box-shadow: 0 8px 25px #10271b18;
+  max-width: calc(100vw - 32px);
+}
+footer.with-pip {
+  padding-bottom: 110px;
+}
+.pip-companion.above-shortlist {
+  bottom: 116px;
+}
+.pip-companion-open {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 4px 6px;
+  text-align: left;
+  min-width: 0;
+}
+.pip-companion-open > span:nth-child(2) {
+  min-width: 0;
+}
+.pip-companion-open strong {
+  font-size: 12px;
+  display: block;
+  font-weight: 600;
+}
+.pip-companion-open small {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+  font-size: 11px;
+  max-width: 175px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pip-companion-hide {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  min-height: 44px;
+  padding: 5px;
+  color: var(--muted);
+}
+.pip-companion .pip,
+.pip-companion .pip i {
+  animation: none;
+}
+.pip-product-context {
+  padding: 14px 16px;
+  background: var(--surface-soft, #edf0e5);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+.pip-product-context > div {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.pip-product-context img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+.pip-product-context strong {
+  display: block;
+  font-size: 14px;
+}
+.pip-product-context small {
+  font-size: 11px;
+  color: var(--muted);
+  display: block;
+  margin: 4px 0;
+}
+.pip-product-context p {
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 10px;
+  color: var(--muted);
+}
+.pip-context-actions {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.pip-context-actions button {
+  min-height: 44px;
+  font-size: 12px;
+}
+.pip-compare-recommendations {
+  margin: 12px 0;
+}
+@media (max-width: 600px) {
+  .pip-companion {
+    right: 12px;
+    bottom: 12px;
+    padding: 5px;
+    border-radius: 14px;
+  }
+  .pip-companion.above-shortlist {
+    bottom: 138px;
+  }
+  .pip-companion-open {
+    gap: 8px;
+  }
+  .pip-companion-open small {
+    max-width: 145px;
+  }
+  .pip-companion-open strong {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 600px) {
+  .pip-companion-open > span:nth-child(2),
+  .pip-companion-open > svg {
+    display: none;
+  }
+  .pip-companion-open {
+    min-width: 44px;
+    padding: 5px;
+    justify-content: center;
+  }
+  .pip-companion .pip.tiny {
+    width: 30px;
+    height: 29px;
+  }
+}

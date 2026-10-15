@@ -67,3 +67,8 @@ Turkish recommendations under 150 USD, grounded 12/5-hour battery comparison/sel
 ## Demo access update
 
 Verified email/Google accounts and Firebase-signed anonymous demo accounts can use Pip; other unverified accounts remain blocked. Anonymous accounts have the same 20/day account quota and share the 200/day global quota. Enable Anonymous in Firebase and deploy the updated rules/code before live testing. No shared credentials, new AI key or paid service is required. Chat history is still scoped to that UID and browser tab. See DEMO-ACCOUNT.md.
+
+
+## Contextual companion update
+
+Pip can be opened from a product page/quick view with an explicit product context and an editable prepared question. Opening it does not call Gemini. The guide API accepts only a known optional productId and resolves its details from the server catalog. Catalog facts may be supplied for explanation even if that item is above the selected budget; recommendation IDs still obey the budget. Last two conversation exchanges, current question, budget and current public product context are sent only on explicit question submission. No additional personal/cart data is added. Context can be cleared; history saves its selected chat and productId per account/tab. Existing rate limits, authentication, free service setup and no-paid-fallback behavior remain. No new environment variable or rule change.

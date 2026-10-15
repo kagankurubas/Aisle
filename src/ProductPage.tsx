@@ -18,6 +18,7 @@ export default function ProductPage({
   onAdd,
   onSave,
   onCompare,
+  onAskPip,
   saved,
   selected,
   listStore,
@@ -29,6 +30,7 @@ export default function ProductPage({
   onAdd: (p: Product) => void;
   onSave: (p: Product) => void;
   onCompare: (p: Product) => void;
+  onAskPip: (p: Product) => void;
   saved: boolean;
   selected: boolean;
   listStore: ListStore;
@@ -132,6 +134,13 @@ export default function ProductPage({
           <button className="compare-choice" onClick={() => onCompare(p)}>
             <Scale size={16} />
             {selected ? "On your shortlist" : "Add to comparison"}
+          </button>
+          <button className="secondary" onClick={() => onAskPip(p)}>
+            <span className="pip tiny" aria-hidden="true">
+              <i />
+              <i />
+            </span>
+            Ask Pip about this product
           </button>
           <ListPicker
             key={p.id}
