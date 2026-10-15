@@ -70,3 +70,8 @@ GitHub run 38704130933, commit 39d31e9 başarılı. Vercel güvenlik başlıklar
 
 Canlı bozuk JSON denemesi 502 döndü: Vercel'in tembel req.body okuyucusunun kendisi SyntaxError atabiliyor. Bu getter erişimi de JSON yakalama bloğuna taşındı; özel regresyon denemesi dahil 15 test geçti. Ek düzeltme yeniden yayınlanıp 400 yanıtı doğrulanmalı. Yeni başlıklar sonrasında kullanıcı Google girişini ayrıca deneyecek.
 
+
+## Kullanıcı oturumu ve runtime log kontrolü
+
+Kullanıcı güvenlik yayını sonrasında Google girişinin çalıştığını doğruladı. Giriş sonrası yanlış hesap yönlendirmesi düzeltildi; kullanıcı anasayfada kalındığını da doğruladı. Vercel Runtime Logs panelinde erişilebilir en fazla bir saatlik aralıkta ve önerilen ödeme başlangıcı denemesinden sonraki ekranda kayıt görünmedi. Bu, yalnızca görüntülenen kapsamda log olmadığını gösterir; geçmiş logların yokluğu veya her istek metaverisinin incelendiği anlamına gelmez. Kaynak incelemesinde payment handler/provider kodunda console log veya istek/anahtar yazdırma bulunmadı. Sırf denetim amacıyla hassas veri yazdıran bir log eklenmedi. GitHub Secret Scanning uyarısının güncel detayını kullanıcı panelinden doğrulama adımı bekliyor.
+
