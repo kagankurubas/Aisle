@@ -1334,6 +1334,15 @@ export default function App() {
                   const key = `${user?.uid}:${receipt.paymentId}`;
                   if (appliedPayments.current.has(key)) return;
                   appliedPayments.current.add(key);
+                  const order: DemoOrder = {
+                    id: `DEMO-${crypto.randomUUID().toUpperCase()}`,
+                    date: new Date().toISOString(),
+                    lines: normalizeCart(receipt.lines),
+                    total: receipt.total,
+                    shipping: Math.max(0, receipt.total - totals(receipt.lines).subtotal),
+                    status: "Confirmed",
+                  };
+                  setOrders((previous) => [order, ...previous].slice(0, 50));
                   setCart((previous) =>
                     subtractPurchased(previous, receipt.lines),
                   );
