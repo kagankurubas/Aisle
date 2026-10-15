@@ -1,0 +1,86 @@
+[
+  {
+    "id": 101,
+    "name": "AirPods Max",
+    "category": "Audio",
+    "price": 44900,
+    "stock": 12
+  },
+  {
+    "id": 100,
+    "name": "AirPods",
+    "category": "Audio",
+    "price": 12900,
+    "stock": 24
+  },
+  {
+    "id": 107,
+    "name": "Beats Flex",
+    "category": "Audio",
+    "price": 4999,
+    "stock": 18
+  },
+  {
+    "id": 103,
+    "name": "HomePod mini",
+    "category": "Audio",
+    "price": 9900,
+    "stock": 15
+  },
+  {
+    "id": 78,
+    "name": "MacBook Pro 14″",
+    "category": "Workspace",
+    "price": 159900,
+    "stock": 8
+  },
+  {
+    "id": 79,
+    "name": "Zenbook Pro Duo",
+    "category": "Workspace",
+    "price": 149900,
+    "stock": 6
+  },
+  {
+    "id": 82,
+    "name": "XPS 13",
+    "category": "Workspace",
+    "price": 109900,
+    "stock": 10
+  },
+  {
+    "id": 80,
+    "name": "MateBook X Pro",
+    "category": "Workspace",
+    "price": 119900,
+    "stock": 7
+  },
+  {
+    "id": 99,
+    "name": "Echo Plus",
+    "category": "Everyday",
+    "price": 8999,
+    "stock": 20
+  },
+  {
+    "id": 104,
+    "name": "USB power adapter",
+    "category": "Everyday",
+    "price": 1900,
+    "stock": 35
+  },
+  {
+    "id": 105,
+    "name": "MagSafe battery pack",
+    "category": "Everyday",
+    "price": 7900,
+    "stock": 16
+  },
+  {
+    "id": 108,
+    "name": "Silicone case",
+    "category": "Everyday",
+    "price": 2900,
+    "stock": 22
+  }
+]

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check, LockKeyhole, Truck } from "lucide-react";
 import { imageFor, money, productById } from "./catalog";
 import { totals, type CartLine, type DemoOrder } from "./shop";
+import SandboxPayment from "./SandboxPayment";
 export default function Checkout({
   cart,
   complete,
@@ -149,10 +150,12 @@ export default function Checkout({
               </button>
               <h3>One last look.</h3>
               <p className="muted">
-                This demonstration creates an order only in this browser. It
-                does not contact a payment provider.
+                Choose a provider sandbox test or an offline demo order below.
+                Both use test data and never create a real charge or shipment.
               </p>
-              <h4>Demo payment scenario</h4>
+              <SandboxPayment cart={cart} express={express} />
+              <hr />
+              <h4>Or explore the offline demo</h4>
               <label className="radio-option">
                 <input
                   type="radio"
@@ -229,8 +232,8 @@ export default function Checkout({
             </div>
           </dl>
           <p className="small muted">
-            USD · Demonstration pricing. Real taxes and payment processing are
-            not configured.
+            USD · Demonstration pricing. Sandbox payments only. No real taxes,
+            charges or shipment.
           </p>
         </aside>
       </div>

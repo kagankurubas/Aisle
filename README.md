@@ -26,7 +26,7 @@ npm test
 
 ## Deliberate boundaries
 
-This is a browser-local prototype. Prices, stock, specifications, ratings and delivery dates are sample data, not real retail offers. Orders are not sent to a merchant. Checkout does not collect card details, charge money or invoke a payment provider. Address fields are discarded when checkout closes; only synthetic order lines, totals and dates are retained locally. Do not enter real personal information into the demo.
+Prices, stock, specifications, ratings and delivery dates are sample data, not real retail offers. Offline demo checkout does not invoke a payment provider. A separate iyzico Sandbox option now uses a Vercel API, server catalog prices and verified provider results to display a test receipt. It never makes a live charge or creates a fulfilment order. Sandbox credentials and deployment testing are required; see docs/PAYMENT-SANDBOX.md. Address fields are discarded when checkout closes; only synthetic offline order lines, totals and dates are retained locally. Do not enter real personal information into the demo.
 
 Firebase Authentication manages Google and email/password accounts. Account UI also supports verification email, checking verification, password reset, generic authentication errors and sign-out. Credentials are passed directly to Firebase and never written to Firestore or app logs. Authentication uses session persistence and is disabled in the downloadable offline demo.
 
@@ -34,7 +34,7 @@ Verified account holders load their own cart and favorites from `users/{uid}/sho
 
 Set the public web config names in `.env.example` via ignored `.env.local`. Firebase web keys identify the app; security depends on deployed rules, authentication, domain/API restrictions and quotas, not hiding the web config. Never add service-account/private keys. Deploy `firestore.rules` before testing cloud sync, and add the actual host to Firebase Auth Authorized domains. See `docs/FIREBASE-SETUP.md`.
 
-Real payment-provider integration and model-backed assistance remain separate integration work. Verified paid orders require server-side authorization, validated catalog prices, rate limits and verified payment webhooks. The browser cannot write paid orders under the included Firestore rules.
+The iyzico Sandbox adapter is implemented with verified Firebase sessions, server-side prices, encrypted payment tickets and provider response signatures. Live payment processing, durable paid orders, webhook reconciliation and model-backed assistance remain separate work. The browser cannot write paid orders under the included Firestore rules. Sandbox receipts are temporary; the bag stays unchanged and repeat verification never triggers fulfilment.
 
 ## Security and privacy
 

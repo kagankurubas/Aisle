@@ -2613,3 +2613,7 @@ footer p {
     scroll-behavior: auto !important;
   }
 }
+/* Hosted provider test flow is distinct from the offline order simulation. */
+.sandbox-payment { margin: 24px 0; padding: 22px 0; border-block: 1px solid #d9ded1; }
+.sandbox-payment h4 { display: flex; align-items: center; gap: 8px; }
+.sandbox-receipt { margin-top: 20px; padding: 16px; background: #edf1e5; overflow-wrap: anywhere; }
