@@ -29,15 +29,11 @@ if ($aisleRemotes -contains 'origin') {
   if ($aisleRemote -notin @("https://github.com/$aisleRepo.git", "https://github.com/$aisleRepo", "git@github.com:$aisleRepo.git")) { throw 'Origin points elsewhere. No remote was changed.' }
   $aisleVisibility = (gh repo view $aisleRepo --json visibility --jq .visibility).Trim()
   if ($LASTEXITCODE -ne 0 -or $aisleVisibility -ne 'PUBLIC') { throw 'Expected an existing public Aisle repository.' }
-  git push -u origin main
-  if ($LASTEXITCODE -ne 0) { throw 'Git push failed. No force push was attempted.' }
 } else {
   $aisleVisibility = (gh repo view $aisleRepo --json visibility --jq .visibility).Trim()
   if ($LASTEXITCODE -ne 0 -or $aisleVisibility -ne 'PUBLIC') { throw 'Expected your existing public Aisle repository.' }
   git remote add origin "https://github.com/$aisleRepo.git"
   if ($LASTEXITCODE -ne 0) { throw 'Cannot add origin.' }
-  git push -u origin main
-  if ($LASTEXITCODE -ne 0) { throw 'Push failed. No force push was attempted; ask Codex to inspect the remote history.' }
 }
 # Windows PowerShell 5 treats redirected native stderr as terminating with Stop.
 # A 404 is expected before Pages is enabled; inspect the native exit code.
@@ -67,8 +63,21 @@ if (Test-Path -LiteralPath '.env.local') {
     }
   }
 }
-gh workflow run deploy.yml --repo $aisleRepo --ref main
-if ($LASTEXITCODE -ne 0) { throw 'Source pushed. Workflow may not be indexed yet; rerun this script shortly or use the Actions tab.' }
+# Configure Pages and public variables before pushing so the automatic build sees them.
+$aisleRemoteHead = @(git ls-remote origin refs/heads/main)
+if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect remote main. Nothing was pushed.' }
+$aisleLocalHead = (git rev-parse main).Trim()
+if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve local main.' }
+$aisleAlreadyPushed = $aisleRemoteHead.Count -gt 0 -and ($aisleRemoteHead[0] -split '\s+')[0] -eq $aisleLocalHead
+git push -u origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git push failed. No force push was attempted.' }
+if ($aisleAlreadyPushed) {
+  # No push event occurs for an unchanged branch, so request exactly one manual build.
+  gh workflow run deploy.yml --repo $aisleRepo --ref main
+  if ($LASTEXITCODE -ne 0) { throw 'Cannot request deployment. Check the Actions tab.' }
+} else {
+  Write-Output 'Push-triggered deployment started. Skipping duplicate manual deployment.'
+}
 Write-Output "Repository: https://github.com/$aisleRepo"
 Write-Output "Expected site after successful deployment: https://$aisleLogin.github.io/Aisle/"
 Write-Output "Check deployment: gh run list --repo $aisleRepo --workflow deploy.yml --limit 3"
